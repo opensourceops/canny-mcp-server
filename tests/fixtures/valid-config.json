@@ -1,0 +1,61 @@
+{
+  "canny": {
+    "apiKey": "${CANNY_API_KEY}",
+    "baseUrl": "${CANNY_BASE_URL:https://canny.io/api/v1}",
+    "workspace": {
+      "name": "Test Workspace",
+      "defaultBoardId": "${CANNY_DEFAULT_BOARD}",
+      "customStatuses": ["open", "complete"],
+      "customFields": {},
+      "boards": {},
+      "tags": {}
+    },
+    "prioritization": {
+      "framework": "RICE",
+      "weights": {
+        "votes": 0.3,
+        "revenue": 0.4,
+        "strategicFit": 0.3
+      }
+    },
+    "jira": {
+      "enabled": false
+    },
+    "defaults": {
+      "pagination": {
+        "limit": 10,
+        "maxTotal": 50
+      },
+      "compactMode": true,
+      "defaultFields": ["id", "title"],
+      "includeComments": false,
+      "commentLimit": 5
+    },
+    "cache": {
+      "enabled": true,
+      "ttl": {
+        "boards": 3600,
+        "tags": 3600,
+        "users": 86400,
+        "posts": 300,
+        "comments": 180
+      },
+      "maxSize": 100
+    },
+    "rateLimit": {
+      "requests": 100,
+      "window": 60000,
+      "retryAfter": 5000,
+      "maxRetries": 3
+    }
+  },
+  "server": {
+    "transport": "stdio",
+    "toolMode": "readonly"
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "console": true
+  }
+}

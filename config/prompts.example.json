@@ -1,0 +1,67 @@
+{
+  "prompts": [
+    {
+      "name": "weekly_triage",
+      "description": "Analyze week's feedback for standup",
+      "arguments": [
+        {
+          "name": "boardId",
+          "description": "Optional board ID to focus on",
+          "required": false
+        },
+        {
+          "name": "includeTrends",
+          "description": "Include trend analysis",
+          "required": false
+        }
+      ],
+      "template": "Analyze this week's feedback:\n1. Top 3 themes by volume\n2. High-revenue requests (>$50k)\n3. Quick wins (high impact, low effort)\n4. Duplicate candidates\n5. Sentiment shifts from last week"
+    },
+    {
+      "name": "sprint_planning",
+      "description": "Generate sprint candidates",
+      "arguments": [
+        {
+          "name": "velocity",
+          "description": "Sprint velocity in story points",
+          "required": true
+        },
+        {
+          "name": "focus",
+          "description": "Optional focus area",
+          "required": false
+        }
+      ],
+      "template": "Based on velocity of {velocity} points:\n1. Apply RICE scoring\n2. Consider engineering availability\n3. Balance quick wins vs strategic\n4. Account for dependencies\n5. Suggest sprint backlog{focus}"
+    },
+    {
+      "name": "executive_summary",
+      "description": "Monthly executive report",
+      "template": "Generate executive summary:\n1. Features shipped (with adoption metrics)\n2. Top 10 requests by ARR impact\n3. Churn risk features\n4. Competitive gaps identified\n5. 90-day roadmap preview"
+    },
+    {
+      "name": "competitive_analysis",
+      "description": "Analyze competitor-driven requests",
+      "arguments": [
+        {
+          "name": "competitor",
+          "description": "Competitor name to focus on",
+          "required": false
+        }
+      ],
+      "template": "Analyze requests mentioning competitors:\n1. Most mentioned competitor features\n2. Gaps in our product vs {competitor}\n3. Customer segment requesting these\n4. ARR impact of competitive gaps\n5. Recommended prioritization"
+    },
+    {
+      "name": "customer_health_check",
+      "description": "Assess customer health via feedback",
+      "arguments": [
+        {
+          "name": "companyId",
+          "description": "Company ID to analyze",
+          "required": true
+        }
+      ],
+      "template": "Customer health check for company {companyId}:\n1. Recent feedback volume and sentiment\n2. Open vs resolved requests\n3. Feature requests blocking expansion\n4. Churn risk indicators\n5. Recommended actions"
+    }
+  ]
+}

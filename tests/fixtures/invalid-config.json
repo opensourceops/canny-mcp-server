@@ -1,0 +1,29 @@
+{
+  "canny": {
+    "apiKey": "${CANNY_API_KEY}",
+    "baseUrl": "https://canny.io/api/v1",
+    "workspace": {
+      "name": "Test",
+      "customStatuses": [],
+      "customFields": {},
+      "boards": {},
+      "tags": {}
+    },
+    "prioritization": {
+      "framework": "RICE",
+      "weights": {
+        "votes": 0.5,
+        "revenue": 0.3,
+        "strategicFit": 0.3
+      }
+    }
+  },
+  "server": {
+    "transport": "stdio"
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "console": true
+  }
+}
