@@ -1,6 +1,6 @@
 # Canny MCP Server
 
-A production-ready Model Context Protocol (MCP) server for Canny feedback management. Integrate Canny with Claude Code to manage customer feedback, prioritize features, and streamline your product development workflow using natural language.
+A production-ready Model Context Protocol (MCP) server for Canny feedback management. Integrate Canny with any MCP-compatible AI client to manage customer feedback, prioritize features, and streamline your product development workflow using natural language.
 
 ## Features
 
@@ -21,9 +21,11 @@ A production-ready Model Context Protocol (MCP) server for Canny feedback manage
 
 ## Prerequisites
 
-- **Node.js** v18 or higher
-- **npm** (comes with Node.js)
-- **Claude Code** (Claude desktop app)
+- **Node.js** v18.18+, v20.9+, or v22+ (LTS versions recommended)
+  - ⚠️ **Note**: Avoid Node v23 (non-LTS, unsupported by testing tools)
+  - Use [nvm](https://github.com/nvm-sh/nvm) for easy version management: `nvm use`
+- **npm** v9 or higher (comes with Node.js)
+- **MCP Client** - Any Model Context Protocol compatible client (e.g., Claude Code, Continue.dev, or custom implementations)
 - **Canny API Key** - Get yours at [canny.io/admin/settings/api](https://canny.io/admin/settings/api)
 
 ## Installation
@@ -54,9 +56,11 @@ npm run build
    - Example: `https://ideas.harness.io/admin/board/feature-request`
    - Board ID is in the URL path or use `canny_list_boards` after setup
 
-### Step 5: Add to Claude Code
+### Step 5: Configure Your MCP Client
 
-Run the following command from within the `canny-mcp-server` directory:
+Add the server to your MCP client's configuration. The exact method depends on your client:
+
+#### Option A: Claude Code (via CLI)
 
 ```bash
 claude mcp add --transport stdio canny \
@@ -66,38 +70,47 @@ claude mcp add --transport stdio canny \
   -- $(which node) $(pwd)/dist/index.js
 ```
 
-Replace `your_api_key_here` and `your_board_id_here` with your actual credentials from Step 4.
+#### Option B: Manual Configuration
 
-**Example:**
-```bash
-cd /Users/yourname/canny-mcp-server
+Add to your MCP client's config file:
 
-claude mcp add --transport stdio canny \
-  --env CANNY_API_KEY=your_api_key_here \
-  --env CANNY_DEFAULT_BOARD=your_board_id_here \
-  --env CANNY_CONFIG_PATH=$(pwd)/config/default.json \
-  -- $(which node) $(pwd)/dist/index.js
-
-# Output:
-✅ MCP server 'canny' added successfully
+```json
+{
+  "mcpServers": {
+    "canny": {
+      "command": "node",
+      "args": ["/absolute/path/to/canny-mcp-server/dist/index.js"],
+      "env": {
+        "CANNY_API_KEY": "your_api_key_here",
+        "CANNY_DEFAULT_BOARD": "your_board_id_here",
+        "CANNY_CONFIG_PATH": "/absolute/path/to/canny-mcp-server/config/default.json"
+      }
+    }
+  }
+}
 ```
 
-### Step 6: Restart Claude Code
+Replace:
+- `your_api_key_here` with your Canny API key
+- `your_board_id_here` with your board ID
+- `/absolute/path/to/canny-mcp-server` with the actual path
 
-Completely quit and restart Claude Code for changes to take effect.
+### Step 6: Restart Your MCP Client
+
+Completely quit and restart your MCP client for changes to take effect.
 
 ### Step 7: Verify Installation
 
-In Claude Code, ask:
+In your MCP client, ask:
 ```
 Can you list the available Canny tools?
 ```
 
-Claude should respond with a list of 25 tools including `canny_list_posts`, `canny_create_post`, `canny_update_post`, `canny_add_vote`, etc.
+You should see a list of 25 tools including `canny_list_posts`, `canny_create_post`, `canny_update_post`, `canny_add_vote`, etc.
 
 ## Quick Test
 
-Try these commands in Claude Code:
+Try these commands in your MCP client:
 
 ```
 Show me the latest feature requests from Canny
@@ -215,9 +228,48 @@ Should return your boards list.
    npm run build
    ```
 
-2. **Restart Claude Code completely** (quit and reopen)
+2. **Restart your MCP client completely** (quit and reopen)
 
 3. **Check toolMode** in `config/default.json`
+
+4. **Verify paths are absolute** in your MCP client configuration
+
+### npm Install Warnings
+
+#### EBADENGINE Warnings (Node v23)
+
+**Symptoms:**
+```
+npm warn EBADENGINE Unsupported engine {
+  package: 'expect@30.2.0',
+  required: { node: '^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0' }
+}
+```
+
+**Solution:**
+- Use Node.js **LTS versions** (18.18+, 20.9+, or 22+)
+- Node v23 is **non-LTS** and unsupported by Jest
+- Switch versions: `nvm use 20` or `nvm use 22`
+- Warnings are **safe to ignore** if you're on v23 (tests still pass)
+
+#### Deprecated Package Warnings
+
+**Symptoms:**
+```
+npm warn deprecated eslint@8.57.1: This version is no longer supported
+npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+```
+
+**Impact:**
+- These are **devDependencies** (testing/linting only)
+- **Production runtime unaffected**
+- Will be resolved in upcoming dependency updates
+
+**What to do:**
+- ✅ Safe to ignore for now
+- ✅ All tests pass (104/104)
+- ✅ Build succeeds
+- 📋 Planned update to ESLint v9 and modern tooling
 
 ## Security
 
