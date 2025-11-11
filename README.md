@@ -1,5 +1,5 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/opensourceops-canny-mcp-server-badge.png)](https://mseep.ai/app/opensourceops-canny-mcp-server)
-
+[![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/5d4679fa-ba73-46e6-b94e-582a8533f594)
 # Canny MCP Server
 
 A production-ready Model Context Protocol (MCP) server for Canny feedback management. Integrate Canny with any MCP-compatible AI client to manage customer feedback, prioritize features, and streamline your product development workflow using natural language.
