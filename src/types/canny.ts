@@ -34,7 +34,7 @@ export interface CannyPost {
   author: CannyUser;
   board: CannyBoard;
   category?: CannyCategory;
-  clickup?: any;
+  clickup?: unknown;
   commentCount: number;
   created: string;
   details: string;
@@ -150,7 +150,6 @@ export interface ListPostsParams {
   companyID?: string;
   limit?: number;
   skip?: number;
-  cursor?: string;
   sort?: 'newest' | 'oldest' | 'relevance' | 'score' | 'statusChanged' | 'trending';
   status?: string;
   tagIDs?: string[];

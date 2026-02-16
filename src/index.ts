@@ -32,8 +32,9 @@ async function main() {
 
     // Keep process alive
     process.stdin.resume();
-  } catch (error: any) {
-    console.error('Failed to start Canny MCP Server:', error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Failed to start Canny MCP Server:', message);
     process.exit(1);
   }
 }

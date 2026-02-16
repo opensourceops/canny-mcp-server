@@ -2,6 +2,8 @@
  * MCP-specific Type Definitions
  */
 
+import type { z } from 'zod';
+import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js';
 import { CannyMCPConfig, ToolsetName } from './config.js';
 import { CannyClient } from '../api/client.js';
 import { Cache } from '../utils/cache.js';
@@ -13,17 +15,20 @@ export interface ToolContext {
   logger: Logger;
 }
 
-export interface ToolHandler<TInput = any, TOutput = any> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export interface ToolHandler<TInput = Record<string, any>, TOutput = unknown> {
   (params: TInput, context: ToolContext): Promise<TOutput>;
 }
 
-export interface MCPTool<TInput = any, TOutput = any> {
+export interface MCPTool {
   name: string;
+  title: string;
   description: string;
-  inputSchema: Record<string, any>;
-  handler: ToolHandler<TInput, TOutput>;
-  readOnly: boolean; // true = read-only (safe), false = writes/modifies data
-  toolset: ToolsetName; // Which toolset category this tool belongs to
+  inputSchema: Record<string, z.ZodType>;
+  handler: ToolHandler;
+  readOnly: boolean;
+  toolset: ToolsetName;
+  annotations: ToolAnnotations;
 }
 
 export interface MCPResource {
@@ -43,14 +48,14 @@ export interface MCPPrompt {
     description: string;
     required: boolean;
   }>;
-  template: string | ((args: Record<string, any>) => string);
+  template: string | ((args: Record<string, string>) => string);
 }
 
 export interface Logger {
-  debug(message: string, ...args: any[]): void;
-  info(message: string, ...args: any[]): void;
-  warn(message: string, ...args: any[]): void;
-  error(message: string, ...args: any[]): void;
+  debug(message: string, ...args: unknown[]): void;
+  info(message: string, ...args: unknown[]): void;
+  warn(message: string, ...args: unknown[]): void;
+  error(message: string, ...args: unknown[]): void;
 }
 
 export interface PaginationOptions {

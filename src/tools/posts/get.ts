@@ -2,6 +2,7 @@
  * Get single post details
  */
 
+import { z } from 'zod';
 import { MCPTool } from '../../types/mcp.js';
 import { ResponseTransformer } from '../../api/transformer.js';
 import { validateRequired } from '../../utils/validators.js';
@@ -9,47 +10,43 @@ import { parseCannyURL, isCannyURL } from '../../utils/url-parser.js';
 
 export const getPost: MCPTool = {
   name: 'canny_get_post',
-  description: 'Get single post with optional related data. Fetch by post ID, URL name, or paste a full Canny URL.',
+  title: 'Get Canny Post',
+  description: `Retrieve a single Canny post with full details. Supports lookup by post ID, URL name, or full Canny URL. Optionally includes comments and votes.
+
+Args:
+  - postID (string, optional): Post ID to retrieve
+  - url (string, optional): Full Canny post URL (e.g., "https://company.canny.io/board/p/feature-name")
+  - urlName (string, optional): Post's unique URL name (alternative to postID)
+  - boardID (string, optional): Board ID (required when using urlName)
+  - includeComments (boolean, optional): Include comments (default: false)
+  - commentLimit (number, optional): Max comments to include (default: 5)
+  - includeVotes (boolean, optional): Include vote details (default: false)
+  - fields (string[], optional): Specific fields to include in response
+
+Returns:
+  JSON with post object, and optionally comments array and votes summary.
+
+Examples:
+  - "Get post abc123" -> postID: "abc123"
+  - "Show post details from URL" -> url: "https://company.canny.io/features/p/dark-mode"
+  - "Get post with comments" -> postID: "abc123", includeComments: true`,
   readOnly: true,
   toolset: 'discovery',
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      postID: {
-        type: 'string',
-        description: 'Post ID to retrieve',
-      },
-      url: {
-        type: 'string',
-        description: 'Full Canny post URL (e.g., https://company.canny.io/board/p/feature-name)',
-      },
-      urlName: {
-        type: 'string',
-        description: "Post's unique URL name (alternative to postID)",
-      },
-      boardID: {
-        type: 'string',
-        description: 'Board ID (required when using urlName, optional with url)',
-      },
-      includeComments: {
-        type: 'boolean',
-        description: 'Include comments (default: false)',
-      },
-      commentLimit: {
-        type: 'number',
-        description: 'Maximum comments to include (default: 5)',
-      },
-      includeVotes: {
-        type: 'boolean',
-        description: 'Include vote count (default: false)',
-      },
-      fields: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Select specific fields to include',
-      },
-    },
-    required: [],
+    postID: z.string().optional().describe('Post ID to retrieve'),
+    url: z.string().optional().describe('Full Canny post URL (e.g., https://company.canny.io/board/p/feature-name)'),
+    urlName: z.string().optional().describe("Post's unique URL name (alternative to postID)"),
+    boardID: z.string().optional().describe('Board ID (required when using urlName, optional with url)'),
+    includeComments: z.boolean().optional().describe('Include comments (default: false)'),
+    commentLimit: z.number().optional().describe('Maximum comments to include (default: 5)'),
+    includeVotes: z.boolean().optional().describe('Include vote count (default: false)'),
+    fields: z.array(z.string()).optional().describe('Select specific fields to include'),
   },
   handler: async (params, { client, config, logger }) => {
     const {
@@ -113,12 +110,12 @@ export const getPost: MCPTool = {
       fields || config.canny.defaults.defaultFields
     );
 
-    const result: any = { post: compactPost };
+    const result: Record<string, unknown> = { post: compactPost };
 
     // Optionally include comments
     if (includeComments) {
       const commentsResponse = await client.listComments({
-        postID,
+        postID: post.id,
         limit: commentLimit,
       });
 
@@ -130,7 +127,7 @@ export const getPost: MCPTool = {
     // Optionally include votes
     if (includeVotes) {
       const votesResponse = await client.listVotes({
-        postID,
+        postID: post.id,
         limit: 10,
       });
 

@@ -336,9 +336,15 @@ describe('CannyClient', () => {
     it('should list tags', async () => {
       mockAxiosInstance.post.mockResolvedValue({ data: mockTagsList });
 
-      const tags = await client.listTags();
+      const result = await client.listTags();
 
-      expect(tags).toEqual(mockTagsList.tags);
+      expect(result.tags).toEqual(mockTagsList.tags);
+      expect(result.hasMore).toBe(false);
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('tags/list', {
+        apiKey: 'test-api-key',
+        limit: 50,
+        skip: 0,
+      });
     });
 
     it('should list tags for specific board', async () => {
@@ -349,6 +355,8 @@ describe('CannyClient', () => {
       expect(mockAxiosInstance.post).toHaveBeenCalledWith('tags/list', {
         apiKey: 'test-api-key',
         boardID: 'board123',
+        limit: 50,
+        skip: 0,
       });
     });
 
@@ -365,9 +373,16 @@ describe('CannyClient', () => {
     it('should list categories', async () => {
       mockAxiosInstance.post.mockResolvedValue({ data: mockCategoriesList });
 
-      const categories = await client.listCategories('board123');
+      const result = await client.listCategories('board123');
 
-      expect(categories).toEqual(mockCategoriesList.categories);
+      expect(result.categories).toEqual(mockCategoriesList.categories);
+      expect(result.hasMore).toBe(false);
+      expect(mockAxiosInstance.post).toHaveBeenCalledWith('categories/list', {
+        apiKey: 'test-api-key',
+        boardID: 'board123',
+        limit: 50,
+        skip: 0,
+      });
     });
 
     it('should retrieve category by ID', async () => {

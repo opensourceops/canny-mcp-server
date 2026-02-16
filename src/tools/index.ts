@@ -27,7 +27,6 @@ import { linkJiraIssue, unlinkJiraIssue } from './jira/link.js';
 
 // Batch tools
 import { batchUpdateStatus } from './batch/status.js';
-import { batchTag, batchMerge } from './batch/tags.js';
 
 export const ALL_TOOLS: MCPTool[] = [
   // Discovery & List (5 read-only tools)
@@ -62,13 +61,11 @@ export const ALL_TOOLS: MCPTool[] = [
   linkJiraIssue,
   unlinkJiraIssue,
 
-  // Batch Operations (3 write tools)
+  // Batch Operations (1 write tool)
   batchUpdateStatus,
-  batchTag,
-  batchMerge,
 ];
 
-// Total: 25 tools (9 read-only, 16 write)
+// Total: 23 tools (9 read-only, 14 write)
 
 export function getToolByName(name: string): MCPTool | undefined {
   return ALL_TOOLS.find((tool) => tool.name === name);

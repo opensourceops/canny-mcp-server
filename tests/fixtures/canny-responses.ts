@@ -134,15 +134,16 @@ export const mockCommentsList = {
 export const mockVotesList = {
   votes: [mockVote],
   hasMore: false,
-  cursor: null,
 };
 
 export const mockTagsList = {
   tags: [mockTag],
+  hasMore: false,
 };
 
 export const mockCategoriesList = {
   categories: [mockCategory],
+  hasMore: false,
 };
 
 export const mockCompaniesList = {

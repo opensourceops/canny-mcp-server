@@ -2,64 +2,51 @@
  * User management tools
  */
 
+import { z } from 'zod';
 import { MCPTool } from '../../types/mcp.js';
 import { validateRequired, validateEmail } from '../../utils/validators.js';
 
 export const findOrCreateUser: MCPTool = {
   name: 'canny_find_or_create_user',
-  description: 'Get or create user ID for operations',
+  title: 'Find or Create User',
+  description: `Find an existing Canny user by email or create a new one if not found.
+
+Idempotent lookup-or-create that returns a stable user ID for downstream operations. Results are cached for 24 hours.
+
+Args:
+  - email (string, required): User email address
+  - name (string): Display name for the user
+  - userID (string): Custom external user identifier
+  - avatarURL (string): URL to the user's avatar image
+  - companies (array): Company associations with optional metadata (created, id, monthlySpend, name)
+  - customFields (object): Key-value pairs for custom user fields
+
+Returns:
+  JSON with id (string) and isNew (boolean) indicating whether the user was just created.
+
+Examples:
+  - "Look up user jane@example.com" -> email: "jane@example.com"
+  - "Create user with company" -> email, name, and companies array`,
   readOnly: false,
   toolset: 'users',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      email: {
-        type: 'string',
-        description: 'User email',
-      },
-      name: {
-        type: 'string',
-        description: 'User name',
-      },
-      userID: {
-        type: 'string',
-        description: 'Custom user identifier',
-      },
-      avatarURL: {
-        type: 'string',
-        description: 'User avatar URL',
-      },
-      companies: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            created: {
-              type: 'string',
-              description: 'Company creation date in ISO 8601',
-            },
-            id: {
-              type: 'string',
-              description: 'Company ID',
-            },
-            monthlySpend: {
-              type: 'number',
-              description: 'Monthly spend/MRR',
-            },
-            name: {
-              type: 'string',
-              description: 'Company name',
-            },
-          },
-        },
-        description: 'Company associations with optional metadata (created, id, monthlySpend, name)',
-      },
-      customFields: {
-        type: 'object',
-        description: 'Custom user fields',
-      },
-    },
-    required: ['email'],
+    email: z.string().describe('User email'),
+    name: z.string().optional().describe('User name'),
+    userID: z.string().optional().describe('Custom user identifier'),
+    avatarURL: z.string().optional().describe('User avatar URL'),
+    companies: z.array(z.object({
+      created: z.string().optional(),
+      id: z.string().optional(),
+      monthlySpend: z.number().optional(),
+      name: z.string().optional(),
+    })).optional().describe('Company associations with optional metadata (created, id, monthlySpend, name)'),
+    customFields: z.record(z.string(), z.unknown()).optional().describe('Custom user fields'),
   },
   handler: async (params, { client, cache, logger }) => {
     const { email, name, userID, avatarURL, companies, customFields } = params;
@@ -102,26 +89,35 @@ export const findOrCreateUser: MCPTool = {
 
 export const getUserDetails: MCPTool = {
   name: 'canny_get_user_details',
-  description: 'Get full user information by ID, email, or custom userID',
+  title: 'Get User Details',
+  description: `Retrieve full profile details for a Canny user.
+
+Looks up a user by any one of their identifiers and returns profile information including associated companies.
+
+Args:
+  - id (string): Canny internal user ID
+  - email (string): User email address
+  - userID (string): Custom external user identifier
+  Note: At least one identifier must be provided.
+
+Returns:
+  JSON with user object containing id, email, name, created date, and companies list.
+
+Examples:
+  - "Get user by email" -> email: "jane@example.com"
+  - "Get user by Canny ID" -> id: "5f4b3c..."`,
   readOnly: true,
   toolset: 'users',
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      id: {
-        type: 'string',
-        description: 'Canny user ID',
-      },
-      email: {
-        type: 'string',
-        description: 'User email address',
-      },
-      userID: {
-        type: 'string',
-        description: 'Custom user identifier',
-      },
-    },
-    required: [],
+    id: z.string().optional().describe('Canny user ID'),
+    email: z.string().optional().describe('User email address'),
+    userID: z.string().optional().describe('Custom user identifier'),
   },
   handler: async (params, { client, logger }) => {
     const { id, email, userID } = params;

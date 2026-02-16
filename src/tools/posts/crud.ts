@@ -2,69 +2,57 @@
  * Post CRUD operations
  */
 
+import { z } from 'zod';
 import { MCPTool } from '../../types/mcp.js';
 import { validateRequired, validateEmail } from '../../utils/validators.js';
 import { resolvePostID } from '../../utils/url-parser.js';
 
 export const createPost: MCPTool = {
   name: 'canny_create_post',
-  description: 'Create new post with auto-user creation',
+  title: 'Create Canny Post',
+  description: `Create a new post in Canny. Automatically creates the author user if they don't exist.
+
+Args:
+  - boardID (string): Board ID to create the post in
+  - title (string): Post title
+  - details (string, optional): Post body/description
+  - authorEmail (string): Author email (user created automatically if needed)
+  - authorName (string, optional): Author display name
+  - categoryID (string, optional): Category ID to assign
+  - customFields (object, optional): Custom field key-value pairs
+  - eta (string, optional): ETA in ISO 8601 format (e.g., "2024-12-31")
+  - etaPublic (boolean, optional): Whether the ETA is publicly visible
+  - imageURLs (string[], optional): Image URLs to attach
+  - ownerID (string, optional): Admin user ID to assign as owner
+  - byID (string, optional): Admin ID creating on behalf of user
+
+Returns:
+  JSON with the created post's id and url.
+
+Examples:
+  - "Create a feature request" -> boardID, title, authorEmail required
+  - "Create post with ETA" -> include eta: "2025-06-30", etaPublic: true`,
   readOnly: false,
   toolset: 'posts',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      boardID: {
-        type: 'string',
-        description: 'Board ID to create post in',
-      },
-      title: {
-        type: 'string',
-        description: 'Post title',
-      },
-      details: {
-        type: 'string',
-        description: 'Post details/description',
-      },
-      authorEmail: {
-        type: 'string',
-        description: 'Author email (user will be created if needed)',
-      },
-      authorName: {
-        type: 'string',
-        description: 'Author name',
-      },
-      categoryID: {
-        type: 'string',
-        description: 'Category ID',
-      },
-      customFields: {
-        type: 'object',
-        description: 'Custom fields for the post',
-      },
-      eta: {
-        type: 'string',
-        description: 'ETA in ISO 8601 format (e.g., "2024-12-31")',
-      },
-      etaPublic: {
-        type: 'boolean',
-        description: 'Whether the ETA is public',
-      },
-      imageURLs: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Array of image URLs to attach to post',
-      },
-      ownerID: {
-        type: 'string',
-        description: 'Admin user ID to assign as post owner',
-      },
-      byID: {
-        type: 'string',
-        description: 'Admin ID creating on behalf of user',
-      },
-    },
-    required: ['boardID', 'title', 'authorEmail'],
+    boardID: z.string().describe('Board ID to create post in'),
+    title: z.string().describe('Post title'),
+    details: z.string().optional().describe('Post details/description'),
+    authorEmail: z.string().describe('Author email (user will be created if needed)'),
+    authorName: z.string().optional().describe('Author name'),
+    categoryID: z.string().optional().describe('Category ID'),
+    customFields: z.record(z.string(), z.unknown()).optional().describe('Custom fields for the post'),
+    eta: z.string().optional().describe('ETA in ISO 8601 format (e.g., "2024-12-31")'),
+    etaPublic: z.boolean().optional().describe('Whether the ETA is public'),
+    imageURLs: z.array(z.string()).optional().describe('Array of image URLs to attach to post'),
+    ownerID: z.string().optional().describe('Admin user ID to assign as post owner'),
+    byID: z.string().optional().describe('Admin ID creating on behalf of user'),
   },
   handler: async (params, { client, config, logger }) => {
     const {
@@ -123,42 +111,40 @@ export const createPost: MCPTool = {
 
 export const updatePostStatus: MCPTool = {
   name: 'canny_update_post_status',
-  description: 'Change post status with notifications. Accepts post ID or Canny URL.',
+  title: 'Update Post Status',
+  description: `Change the status of a Canny post with optional voter notifications. Accepts post ID or Canny URL.
+
+Args:
+  - postID (string, optional): Post ID to update
+  - url (string, optional): Canny post URL (alternative to postID)
+  - boardID (string, optional): Board ID (helps resolve URL)
+  - changerID (string): ID of the admin changing the status
+  - status (string): New status value (must match configured statuses)
+  - comment (string, optional): Comment to include with the status change
+  - notifyVoters (boolean, optional): Notify users who voted on the post (default: true)
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Mark post as complete" -> postID, changerID, status: "complete"
+  - "Close post from URL" -> url: "https://...", changerID, status: "closed"`,
   readOnly: false,
   toolset: 'posts',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      postID: {
-        type: 'string',
-        description: 'Post ID to update',
-      },
-      url: {
-        type: 'string',
-        description: 'Canny post URL (alternative to postID)',
-      },
-      boardID: {
-        type: 'string',
-        description: 'Board ID (optional, helps resolve URL)',
-      },
-      changerID: {
-        type: 'string',
-        description: 'ID of admin changing the status',
-      },
-      status: {
-        type: 'string',
-        description: 'New status',
-      },
-      comment: {
-        type: 'string',
-        description: 'Optional status change comment',
-      },
-      notifyVoters: {
-        type: 'boolean',
-        description: 'Notify users who voted (default: true)',
-      },
-    },
-    required: ['changerID', 'status'],
+    postID: z.string().optional().describe('Post ID to update'),
+    url: z.string().optional().describe('Canny post URL (alternative to postID)'),
+    boardID: z.string().optional().describe('Board ID (optional, helps resolve URL)'),
+    changerID: z.string().describe('ID of admin changing the status'),
+    status: z.string().describe('New status'),
+    comment: z.string().optional().describe('Optional status change comment'),
+    notifyVoters: z.boolean().optional().describe('Notify users who voted (default: true)'),
   },
   handler: async (params, { client, config, logger }) => {
     const { postID: providedPostID, url, boardID, changerID, status, comment, notifyVoters = true } = params;
@@ -194,51 +180,44 @@ export const updatePostStatus: MCPTool = {
 
 export const updatePost: MCPTool = {
   name: 'canny_update_post',
-  description: 'Update post details (title, description, ETA, images, custom fields). Accepts post ID or Canny URL.',
+  title: 'Update Post Details',
+  description: `Update the details of an existing Canny post. Accepts post ID or Canny URL. At least one field must be provided.
+
+Args:
+  - postID (string, optional): Post ID to update
+  - url (string, optional): Canny post URL (alternative to postID)
+  - boardID (string, optional): Board ID (helps resolve URL)
+  - title (string, optional): New post title
+  - details (string, optional): New post body/description
+  - eta (string, optional): ETA in ISO 8601 format (e.g., "2024-12-31")
+  - etaPublic (boolean, optional): Whether the ETA is publicly visible
+  - imageURLs (string[], optional): Image URLs to attach
+  - customFields (object, optional): Custom field key-value pairs
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Update post title" -> postID: "abc123", title: "New Title"
+  - "Set ETA on post" -> postID: "abc123", eta: "2025-06-30", etaPublic: true`,
   readOnly: false,
   toolset: 'posts',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      postID: {
-        type: 'string',
-        description: 'Post ID to update',
-      },
-      url: {
-        type: 'string',
-        description: 'Canny post URL (alternative to postID)',
-      },
-      boardID: {
-        type: 'string',
-        description: 'Board ID (optional, helps resolve URL)',
-      },
-      title: {
-        type: 'string',
-        description: 'New post title',
-      },
-      details: {
-        type: 'string',
-        description: 'New post details/description',
-      },
-      eta: {
-        type: 'string',
-        description: 'ETA in ISO 8601 format (e.g., "2024-12-31")',
-      },
-      etaPublic: {
-        type: 'boolean',
-        description: 'Whether the ETA is public',
-      },
-      imageURLs: {
-        type: 'array',
-        items: { type: 'string' },
-        description: 'Array of image URLs to attach to post',
-      },
-      customFields: {
-        type: 'object',
-        description: 'Custom fields for the post',
-      },
-    },
-    required: [],
+    postID: z.string().optional().describe('Post ID to update'),
+    url: z.string().optional().describe('Canny post URL (alternative to postID)'),
+    boardID: z.string().optional().describe('Board ID (optional, helps resolve URL)'),
+    title: z.string().optional().describe('New post title'),
+    details: z.string().optional().describe('New post details/description'),
+    eta: z.string().optional().describe('ETA in ISO 8601 format (e.g., "2024-12-31")'),
+    etaPublic: z.boolean().optional().describe('Whether the ETA is public'),
+    imageURLs: z.array(z.string()).optional().describe('Array of image URLs to attach to post'),
+    customFields: z.record(z.string(), z.unknown()).optional().describe('Custom fields for the post'),
   },
   handler: async (params, { client, config, logger }) => {
     const {
@@ -281,30 +260,34 @@ export const updatePost: MCPTool = {
 
 export const changeCategory: MCPTool = {
   name: 'canny_change_category',
-  description: 'Move post to different category. Accepts post ID or Canny URL.',
+  title: 'Change Post Category',
+  description: `Move a Canny post to a different category. Accepts post ID or Canny URL.
+
+Args:
+  - postID (string, optional): Post ID to update
+  - url (string, optional): Canny post URL (alternative to postID)
+  - boardID (string, optional): Board ID (helps resolve URL)
+  - categoryID (string): Target category ID
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Move post to a new category" -> postID: "abc123", categoryID: "cat456"
+  - "Recategorize post from URL" -> url: "https://...", categoryID: "cat456"`,
   readOnly: false,
   toolset: 'posts',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      postID: {
-        type: 'string',
-        description: 'Post ID',
-      },
-      url: {
-        type: 'string',
-        description: 'Canny post URL (alternative to postID)',
-      },
-      boardID: {
-        type: 'string',
-        description: 'Board ID (optional, helps resolve URL)',
-      },
-      categoryID: {
-        type: 'string',
-        description: 'New category ID',
-      },
-    },
-    required: ['categoryID'],
+    postID: z.string().optional().describe('Post ID'),
+    url: z.string().optional().describe('Canny post URL (alternative to postID)'),
+    boardID: z.string().optional().describe('Board ID (optional, helps resolve URL)'),
+    categoryID: z.string().describe('New category ID'),
   },
   handler: async (params, { client, config, logger }) => {
     const { postID: providedPostID, url, boardID, categoryID } = params;

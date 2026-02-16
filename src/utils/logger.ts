@@ -7,25 +7,25 @@ import { LoggingConfig } from '../types/config.js';
 export class Logger {
   constructor(private config: LoggingConfig) {}
 
-  debug(message: string, ...args: any[]): void {
+  debug(message: string, ...args: unknown[]): void {
     if (this.shouldLog('debug')) {
       this.log('debug', message, args);
     }
   }
 
-  info(message: string, ...args: any[]): void {
+  info(message: string, ...args: unknown[]): void {
     if (this.shouldLog('info')) {
       this.log('info', message, args);
     }
   }
 
-  warn(message: string, ...args: any[]): void {
+  warn(message: string, ...args: unknown[]): void {
     if (this.shouldLog('warn')) {
       this.log('warn', message, args);
     }
   }
 
-  error(message: string, ...args: any[]): void {
+  error(message: string, ...args: unknown[]): void {
     if (this.shouldLog('error')) {
       this.log('error', message, args);
     }
@@ -38,7 +38,7 @@ export class Logger {
     return messageLevel >= configLevel;
   }
 
-  private log(level: string, message: string, args: any[]): void {
+  private log(level: string, message: string, args: unknown[]): void {
     const timestamp = new Date().toISOString();
 
     if (this.config.format === 'json') {
@@ -50,14 +50,14 @@ export class Logger {
       };
 
       if (this.config.console) {
-        console.log(JSON.stringify(logEntry));
+        console.error(JSON.stringify(logEntry));
       }
     } else {
       const formattedArgs = args.length > 0 ? ` ${JSON.stringify(args)}` : '';
       const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}${formattedArgs}`;
 
       if (this.config.console) {
-        console.log(logMessage);
+        console.error(logMessage);
       }
     }
   }

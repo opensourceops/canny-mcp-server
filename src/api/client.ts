@@ -59,9 +59,9 @@ export class CannyClient {
 
           this.logger.debug(`API request successful: ${endpoint}`, { params });
           return response.data;
-        } catch (error: any) {
+        } catch (error: unknown) {
           this.logger.error(`API request failed: ${endpoint}`, {
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             params,
           });
           throw mapHTTPError(error);
@@ -88,24 +88,21 @@ export class CannyClient {
   async listPosts(params: ListPostsParams): Promise<{
     posts: CannyPost[];
     hasMore: boolean;
-    cursor?: string;
   }> {
     const response = await this.request<{
       posts: CannyPost[];
       hasMore: boolean;
-      cursor?: string;
     }>('posts/list', params);
 
     return {
       posts: response.posts || [],
       hasMore: response.hasMore || false,
-      cursor: response.cursor,
     };
   }
 
   async retrievePost(params: { id?: string; urlName?: string; boardID?: string }): Promise<CannyPost> {
     // Build request params based on what's provided
-    const requestParams: any = {};
+    const requestParams: Record<string, string> = {};
 
     if (params.id) {
       requestParams.id = params.id;
@@ -198,22 +195,19 @@ export class CannyClient {
     boardID?: string;
     userID?: string;
     limit?: number;
-    cursor?: string;
+    skip?: number;
   }): Promise<{
     votes: CannyVote[];
     hasMore: boolean;
-    cursor?: string;
   }> {
     const response = await this.request<{
       votes: CannyVote[];
       hasMore: boolean;
-      cursor?: string;
     }>('votes/list', params);
 
     return {
       votes: response.votes || [],
       hasMore: response.hasMore || false,
-      cursor: response.cursor,
     };
   }
 
@@ -227,10 +221,10 @@ export class CannyClient {
 
   // ===== Tag Operations =====
 
-  async listTags(boardID?: string): Promise<CannyTag[]> {
-    const params = boardID ? { boardID } : {};
-    const response = await this.request<{ tags: CannyTag[] }>('tags/list', params);
-    return response.tags;
+  async listTags(boardID?: string, limit = 50, skip = 0): Promise<{ tags: CannyTag[]; hasMore: boolean }> {
+    const params = boardID ? { boardID, limit, skip } : { limit, skip };
+    const response = await this.request<{ tags: CannyTag[]; hasMore: boolean }>('tags/list', params);
+    return { tags: response.tags, hasMore: response.hasMore };
   }
 
   async retrieveTag(tagID: string): Promise<CannyTag> {
@@ -239,12 +233,12 @@ export class CannyClient {
 
   // ===== Category Operations =====
 
-  async listCategories(boardID: string): Promise<CannyCategory[]> {
-    const response = await this.request<{ categories: CannyCategory[] }>(
+  async listCategories(boardID: string, limit = 50, skip = 0): Promise<{ categories: CannyCategory[]; hasMore: boolean }> {
+    const response = await this.request<{ categories: CannyCategory[]; hasMore: boolean }>(
       'categories/list',
-      { boardID }
+      { boardID, limit, skip }
     );
-    return response.categories;
+    return { categories: response.categories, hasMore: response.hasMore };
   }
 
   async retrieveCategory(categoryID: string): Promise<CannyCategory> {

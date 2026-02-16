@@ -72,8 +72,8 @@ export async function resolvePostID(params: {
   urlName?: string;
   boardID?: string;
   config: CannyMCPConfig;
-  client: any;
-  logger: any;
+  client: Pick<import('../api/client.js').CannyClient, 'retrievePost'>;
+  logger: Pick<import('../types/mcp.js').Logger, 'debug'>;
 }): Promise<string> {
   const { postID, url, urlName, boardID, config, client, logger } = params;
 
@@ -132,8 +132,8 @@ export async function resolvePostIDs(params: {
   postIDs?: string[];
   urls?: string[];
   config: CannyMCPConfig;
-  client: any;
-  logger: any;
+  client: Pick<import('../api/client.js').CannyClient, 'retrievePost'>;
+  logger: Pick<import('../types/mcp.js').Logger, 'debug'>;
 }): Promise<string[]> {
   const { postIDs, urls, config, client, logger } = params;
 

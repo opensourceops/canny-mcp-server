@@ -40,9 +40,12 @@ export class ValidationError extends CannyError {
   }
 }
 
-export function mapHTTPError(error: any): CannyError {
-  const status = error.response?.status || error.statusCode || 500;
-  const message = error.response?.data?.error || error.message || 'Unknown error';
+export function mapHTTPError(error: unknown): CannyError {
+  const err = error as Record<string, unknown>;
+  const response = err.response as Record<string, unknown> | undefined;
+  const status = (response?.status as number) || (err.statusCode as number) || 500;
+  const data = response?.data as Record<string, unknown> | undefined;
+  const message = (data?.error as string) || (err.message as string) || 'Unknown error';
 
   switch (status) {
     case 400:
@@ -66,7 +69,8 @@ export function mapHTTPError(error: any): CannyError {
         false
       );
     case 429:
-      const retryAfter = parseInt(error.response?.headers?.['retry-after'] || '60', 10);
+      const headers = response?.headers as Record<string, string> | undefined;
+      const retryAfter = parseInt(headers?.['retry-after'] || '60', 10);
       return new RateLimitError(retryAfter);
     case 500:
     case 502:
@@ -95,8 +99,8 @@ export async function withRetry<T>(
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       return await fn();
-    } catch (error: any) {
-      lastError = error;
+    } catch (error: unknown) {
+      lastError = error instanceof Error ? error : new Error(String(error));
 
       const cannyError = error instanceof CannyError ? error : mapHTTPError(error);
 

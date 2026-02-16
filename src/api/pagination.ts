@@ -18,8 +18,8 @@ export class PaginationHandler {
    */
   static getStrategy(endpoint: string): PaginationStrategy {
     const strategies: Record<string, PaginationStrategy> = {
-      'posts/list': 'cursor',
-      'votes/list': 'cursor',
+      'posts/list': 'skip',
+      'votes/list': 'skip',
       'comments/list': 'skip',
       'boards/list': 'none',
       'tags/list': 'none',

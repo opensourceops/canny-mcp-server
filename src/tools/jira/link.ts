@@ -2,40 +2,46 @@
  * Jira integration tools
  */
 
+import { z } from 'zod';
 import { MCPTool } from '../../types/mcp.js';
 import { validateRequired } from '../../utils/validators.js';
 import { resolvePostID } from '../../utils/url-parser.js';
 
 export const linkJiraIssue: MCPTool = {
   name: 'canny_link_jira_issue',
-  description: 'Link existing Jira issue to post. Accepts post ID or Canny URL.',
+  title: 'Link Jira Issue',
+  description: `Link an existing Jira issue to a Canny post.
+
+Creates a connection between a Jira issue and a Canny post. If Jira status sync is enabled, the post status is automatically set to "in progress" and a comment is added.
+
+Args:
+  - issueKey (string, required): Jira issue key (e.g., "PROJ-123")
+  - postID (string): Canny post ID
+  - url (string): Canny post URL (alternative to postID)
+  - boardID (string): Board ID to help resolve URL
+  - changerID (string): Admin user ID (required if status sync is enabled)
+  Note: Provide either postID or url to identify the post.
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Link PROJ-123 to post" -> issueKey: "PROJ-123", postID: "6..."
+  - "Link issue to post by URL" -> issueKey: "PROJ-456", url: "https://your-co.canny.io/..."`,
   readOnly: false,
   toolset: 'jira',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      postID: {
-        type: 'string',
-        description: 'Post ID',
-      },
-      url: {
-        type: 'string',
-        description: 'Canny post URL (alternative to postID)',
-      },
-      boardID: {
-        type: 'string',
-        description: 'Board ID (optional, helps resolve URL)',
-      },
-      issueKey: {
-        type: 'string',
-        description: 'Jira issue key (e.g., "PROJ-123")',
-      },
-      changerID: {
-        type: 'string',
-        description: 'ID of admin linking the issue (required if status sync is enabled)',
-      },
-    },
-    required: ['issueKey'],
+    issueKey: z.string().describe('Jira issue key (e.g., "PROJ-123")'),
+    postID: z.string().optional().describe('Post ID'),
+    url: z.string().optional().describe('Canny post URL (alternative to postID)'),
+    boardID: z.string().optional().describe('Board ID (optional, helps resolve URL)'),
+    changerID: z.string().optional().describe('ID of admin linking the issue (required if status sync is enabled)'),
   },
   handler: async (params, { client, config, logger }) => {
     const { postID: providedPostID, url, boardID, issueKey, changerID } = params;
@@ -85,30 +91,37 @@ export const linkJiraIssue: MCPTool = {
 
 export const unlinkJiraIssue: MCPTool = {
   name: 'canny_unlink_jira_issue',
-  description: 'Remove Jira issue link from post. Accepts post ID or Canny URL.',
+  title: 'Unlink Jira Issue',
+  description: `Remove a Jira issue link from a Canny post.
+
+Disconnects a previously linked Jira issue from a Canny post. This is a destructive operation that cannot be undone without re-linking.
+
+Args:
+  - issueKey (string, required): Jira issue key to unlink
+  - postID (string): Canny post ID
+  - url (string): Canny post URL (alternative to postID)
+  - boardID (string): Board ID to help resolve URL
+  Note: Provide either postID or url to identify the post.
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Unlink PROJ-123 from post" -> issueKey: "PROJ-123", postID: "6..."
+  - "Remove Jira link by URL" -> issueKey: "PROJ-456", url: "https://your-co.canny.io/..."`,
   readOnly: false,
   toolset: 'jira',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      postID: {
-        type: 'string',
-        description: 'Post ID',
-      },
-      url: {
-        type: 'string',
-        description: 'Canny post URL (alternative to postID)',
-      },
-      boardID: {
-        type: 'string',
-        description: 'Board ID (optional, helps resolve URL)',
-      },
-      issueKey: {
-        type: 'string',
-        description: 'Jira issue key',
-      },
-    },
-    required: ['issueKey'],
+    issueKey: z.string().describe('Jira issue key'),
+    postID: z.string().optional().describe('Post ID'),
+    url: z.string().optional().describe('Canny post URL (alternative to postID)'),
+    boardID: z.string().optional().describe('Board ID (optional, helps resolve URL)'),
   },
   handler: async (params, { client, config, logger }) => {
     const { postID: providedPostID, url, boardID, issueKey } = params;

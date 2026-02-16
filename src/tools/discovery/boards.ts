@@ -2,25 +2,41 @@
  * Board discovery tools
  */
 
+import { z } from 'zod';
 import { MCPTool } from '../../types/mcp.js';
 import { CannyBoard } from '../../types/canny.js';
 
 export const listBoards: MCPTool = {
   name: 'canny_list_boards',
-  description: 'Get all available boards with metadata',
+  title: 'List Canny Boards',
+  description: `List all boards in your Canny workspace with key metadata.
+
+Returns a list of every board including post counts and visibility settings.
+
+Args:
+  None
+
+Returns:
+  JSON object with a "boards" array, each containing id, name, postCount, isPrivate, and url.
+
+Examples:
+  - "Show all boards" -> no params needed
+  - "Which boards are available?" -> no params needed`,
   readOnly: true,
   toolset: 'discovery',
-  inputSchema: {
-    type: 'object',
-    properties: {},
-    required: [],
+  inputSchema: {},
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
   },
   handler: async (params, { client, cache, logger }) => {
     logger.info('Fetching boards list');
 
     // Check cache first
     const cacheKey = 'boards:all';
-    const cached = cache.get<{ boards: any[] }>(cacheKey);
+    const cached = cache.get<{ boards: unknown[] }>(cacheKey);
     if (cached) {
       logger.debug('Returning cached boards');
       return cached;

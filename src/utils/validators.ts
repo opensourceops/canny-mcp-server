@@ -4,7 +4,7 @@
 
 import { ValidationError } from './errors.js';
 
-export function validateRequired(value: any, fieldName: string): void {
+export function validateRequired(value: unknown, fieldName: string): void {
   if (value === undefined || value === null || value === '') {
     throw new ValidationError(`${fieldName} is required`);
   }
@@ -17,7 +17,7 @@ export function validateEmail(email: string): void {
   }
 }
 
-export function validateOneOf(value: any, options: any[], fieldName: string): void {
+export function validateOneOf(value: unknown, options: unknown[], fieldName: string): void {
   if (!options.includes(value)) {
     throw new ValidationError(
       `${fieldName} must be one of: ${options.join(', ')}. Got: ${value}`

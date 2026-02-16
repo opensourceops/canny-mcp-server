@@ -2,27 +2,38 @@
  * Company management tools
  */
 
+import { z } from 'zod';
 import { MCPTool } from '../../types/mcp.js';
 import { validateRequired } from '../../utils/validators.js';
 
 export const listCompanies: MCPTool = {
   name: 'canny_list_companies',
-  description: 'Get company data for segmentation',
+  title: 'List Companies',
+  description: `List companies registered in Canny with pagination support.
+
+Retrieves company records for segmentation and filtering, returning basic company info and spend data.
+
+Args:
+  - limit (number): Number of companies to fetch (default: 20)
+  - skip (number): Number of companies to skip for pagination (default: 0)
+
+Returns:
+  JSON with companies array (id, name, monthlySpend, created) and hasMore boolean.
+
+Examples:
+  - "Show all companies" -> no params needed
+  - "Get next page of companies" -> skip: 20, limit: 20`,
   readOnly: true,
   toolset: 'users',
+  annotations: {
+    readOnlyHint: true,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      limit: {
-        type: 'number',
-        description: 'Number of companies to fetch',
-      },
-      skip: {
-        type: 'number',
-        description: 'Number of companies to skip',
-      },
-    },
-    required: [],
+    limit: z.number().optional().describe('Number of companies to fetch'),
+    skip: z.number().optional().describe('Number of companies to skip'),
   },
   handler: async (params, { client, logger }) => {
     const { limit = 20, skip = 0 } = params;
@@ -49,30 +60,36 @@ export const listCompanies: MCPTool = {
 
 export const linkCompany: MCPTool = {
   name: 'canny_link_company',
-  description: 'Associate users with companies for revenue tracking',
+  title: 'Link User to Company',
+  description: `Associate a Canny user with a company for revenue tracking.
+
+Links a user to a company by ID or name. If a companyName is provided without a companyID, a new company is created automatically.
+
+Args:
+  - userID (string, required): Canny user ID to link
+  - companyID (string): Existing company ID to associate
+  - companyName (string): Company name (creates company if companyID not given)
+  - monthlySpend (number): Monthly spend/revenue for the company
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Link user to existing company" -> userID, companyID
+  - "Link user to new company" -> userID, companyName: "Acme Inc", monthlySpend: 500`,
   readOnly: false,
   toolset: 'users',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
   inputSchema: {
-    type: 'object',
-    properties: {
-      userID: {
-        type: 'string',
-        description: 'User ID',
-      },
-      companyID: {
-        type: 'string',
-        description: 'Company ID',
-      },
-      companyName: {
-        type: 'string',
-        description: 'Company name',
-      },
-      monthlySpend: {
-        type: 'number',
-        description: 'Monthly spend/revenue',
-      },
-    },
-    required: ['userID'],
+    userID: z.string().describe('User ID'),
+    companyID: z.string().optional().describe('Company ID'),
+    companyName: z.string().optional().describe('Company name'),
+    monthlySpend: z.number().optional().describe('Monthly spend/revenue'),
   },
   handler: async (params, { client, logger }) => {
     const { userID, companyID, companyName, monthlySpend } = params;
