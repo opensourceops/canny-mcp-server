@@ -16,7 +16,7 @@ A Model Context Protocol (MCP) server for Canny feedback management. Connect Can
 
 ## Prerequisites
 
-- **Node.js** v18.18+, v20.9+, or v22+ (LTS versions)
+- **Node.js** v20.9+, v22+, or v24+ (LTS versions)
 - **npm** v9+
 - **MCP Client** — Claude Code, Continue.dev, or any MCP-compatible client
 - **Canny API Key** — Get one at [canny.io/admin/settings/api](https://canny.io/admin/settings/api)
@@ -316,7 +316,7 @@ This should return your boards.
 
 ### Node.js Version Warnings
 
-Use Node.js LTS versions (18.18+, 20.9+, or 22+). Node v23 is non-LTS and unsupported by testing tools. Switch with `nvm use 20` or `nvm use 22`.
+Use Node.js LTS versions (20.9+, 22+, or 24+). Odd-numbered releases (23, 25) are non-LTS and unsupported. Switch with `nvm use 20` or `nvm use 22`.
 
 Deprecated package warnings (ESLint, glob) affect only devDependencies and do not affect production runtime.
 
