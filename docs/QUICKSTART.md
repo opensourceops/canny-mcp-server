@@ -1,62 +1,110 @@
 # Quick Start Guide
 
-Get up and running with Canny MCP Server in 5 minutes.
+Get up and running with Canny MCP Server.
 
 ## Prerequisites
 
-- Node.js 18+ installed
-- Canny account with API access
-- Canny API key ([Get it here](https://canny.io/admin/settings/api))
+- Node.js 18.18+, 20.9+, or 22+ (LTS versions)
+- Canny API key ([get one here](https://canny.io/admin/settings/api))
+- An MCP-compatible client (Claude Code, Continue.dev, etc.)
 
-## Installation
+## Option A: Use with Claude Code (no clone needed)
 
 ```bash
-# 1. Navigate to the project directory
-cd canny-mcp
+claude mcp add --transport stdio canny \
+  --scope user \
+  --env CANNY_SUBDOMAIN=<COMPANY_SUBDOMAIN> \
+  --env CANNY_API_KEY=<CANNY_API_KEY> \
+  --env CANNY_DEFAULT_BOARD=<BOARD_ID> \
+  --env CANNY_TOOL_MODE=readonly \
+  -- npx -y @opensourceops/canny-mcp
+```
 
-# 2. Install dependencies
+Replace `<COMPANY_SUBDOMAIN>`, `<CANNY_API_KEY>`, and `<BOARD_ID>` with your values.
+
+Restart Claude Code. Ask:
+
+```
+List the available Canny tools.
+```
+
+You should see 24 tools.
+
+## Option B: Install globally
+
+```bash
+npm install -g @opensourceops/canny-mcp
+```
+
+Then configure your MCP client:
+
+```json
+{
+  "mcpServers": {
+    "canny": {
+      "command": "canny-mcp-server",
+      "env": {
+        "CANNY_API_KEY": "your_api_key",
+        "CANNY_SUBDOMAIN": "your_subdomain",
+        "CANNY_DEFAULT_BOARD": "your_board_id",
+        "CANNY_TOOL_MODE": "readonly"
+      }
+    }
+  }
+}
+```
+
+## Option C: Clone for local development
+
+```bash
+git clone https://github.com/opensourceops/canny-mcp-server.git
+cd canny-mcp-server
 npm install
-
-# 3. Create environment file
-cp .env.example .env
+npm run build
 ```
 
-## Configuration
-
-Edit `.env`:
-
-```env
-CANNY_API_KEY=your_actual_api_key_here
-CANNY_DEFAULT_BOARD=your_board_id_here
-```
-
-To find your board ID:
-1. Go to your Canny admin dashboard
-2. Navigate to Settings > API & Webhooks
-3. Click on "Boards" to see board IDs
-
-## Build and Run
+Add to Claude Code:
 
 ```bash
-# Build the TypeScript code
-npm run build
-
-# Start the server
-npm start
+claude mcp add --transport stdio canny \
+  --env CANNY_API_KEY=your_api_key \
+  --env CANNY_SUBDOMAIN=your_subdomain \
+  --env CANNY_DEFAULT_BOARD=your_board_id \
+  --env CANNY_CONFIG_PATH=$(pwd)/config/default.json \
+  -- $(which node) $(pwd)/dist/index.js
 ```
 
-You should see:
+Or add to your MCP client's config file:
+
+```json
+{
+  "mcpServers": {
+    "canny": {
+      "command": "node",
+      "args": ["/absolute/path/to/canny-mcp-server/dist/index.js"],
+      "env": {
+        "CANNY_API_KEY": "your_api_key",
+        "CANNY_SUBDOMAIN": "your_subdomain",
+        "CANNY_DEFAULT_BOARD": "your_board_id",
+        "CANNY_CONFIG_PATH": "/absolute/path/to/canny-mcp-server/config/default.json"
+      }
+    }
+  }
+}
 ```
-{"timestamp":"2025-01-19T10:00:00.000Z","level":"INFO","message":"Canny MCP Server started"}
-```
+
+## Finding Your Credentials
+
+1. **API Key** -- Visit [canny.io/admin/settings/api](https://canny.io/admin/settings/api)
+2. **Subdomain** -- Your Canny workspace URL: `https://<subdomain>.canny.io`
+3. **Board ID** -- Find it in the Canny admin URL, or run `canny_list_boards` after setup
 
 ## Test It Out
 
-### Example 1: List Your Boards
+### List boards
 
-Call the `canny_list_boards` tool (no parameters needed):
+Call `canny_list_boards` (no parameters):
 
-**Response:**
 ```json
 {
   "boards": [
@@ -71,7 +119,7 @@ Call the `canny_list_boards` tool (no parameters needed):
 }
 ```
 
-### Example 2: Search for Posts
+### Search posts
 
 Call `canny_list_posts`:
 
@@ -83,7 +131,8 @@ Call `canny_list_posts`:
 }
 ```
 
-**Response (optimized for tokens):**
+Response:
+
 ```json
 {
   "posts": [
@@ -99,183 +148,69 @@ Call `canny_list_posts`:
 }
 ```
 
-### Example 3: Use a Prompt
+### Filter by category
 
-Call the `weekly_triage` prompt to analyze feedback:
-
-**Generated Analysis:**
-```
-Analyze this week's feedback and identify:
-
-1. Top 3 themes by volume
-   - What are customers talking about most?
-   - Any emerging patterns?
-
-2. High-revenue requests
-   - Requests from enterprise customers
-   - Features with high ARR impact
-
-[... full prompt template]
-```
-
-## Integration with Claude Desktop
-
-1. Open Claude Desktop configuration:
-   - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   - Windows: `%APPDATA%\Claude\claude_desktop_config.json`
-
-2. Add the Canny MCP server:
+Call `canny_filter_posts`:
 
 ```json
 {
-  "mcpServers": {
-    "canny": {
-      "command": "node",
-      "args": ["/full/path/to/canny-mcp/dist/index.js"],
-      "env": {
-        "CANNY_API_KEY": "your-key-here",
-        "CANNY_DEFAULT_BOARD": "board-id-here"
-      }
-    }
-  }
+  "categoryURLNames": ["continuous-integration"],
+  "status": ["open"]
 }
 ```
-
-3. Restart Claude Desktop
-
-4. You should now see Canny tools available!
 
 ## Common Use Cases
 
-### Use Case 1: Sprint Planning
+### Sprint Planning
 
 ```
-You: "Show me open posts without Jira links, sorted by score"
+You: "Show me open posts sorted by score"
 
 Tool: canny_list_posts
-{
-  "status": "open",
-  "sort": "score",
-  "limit": 20
-}
+{ "status": "open", "sort": "score", "limit": 20 }
 
 You: "Update these 5 posts to 'planned' status"
 
 Tool: canny_batch_update_status
-{
-  "postIDs": ["post1", "post2", "post3", "post4", "post5"],
-  "status": "planned",
-  "comment": "Added to Sprint 24"
-}
+{ "postIDs": ["post1", "post2", ...], "status": "planned", "comment": "Added to Sprint 24" }
 ```
 
-### Use Case 2: Customer Feedback Review
+### Customer Feedback Review
 
 ```
 You: "Use the weekly_triage prompt"
 
 Prompt: weekly_triage
 
-[Claude analyzes feedback and identifies:
-- Top themes
-- Quick wins
-- Duplicates to merge
-- High-revenue requests]
+[Claude analyzes feedback and identifies top themes, quick wins, and duplicates to merge]
 ```
 
-### Use Case 3: Jira Integration
+### Jira Integration
 
 ```
 You: "Link Canny post ABC123 to Jira issue PROJ-456"
 
 Tool: canny_link_jira_issue
-{
-  "postID": "ABC123",
-  "issueKey": "PROJ-456"
-}
-
-Response: { "success": true }
-```
-
-## Customization
-
-### Add Custom Statuses
-
-Edit `config/default.json`:
-
-```json
-{
-  "canny": {
-    "workspace": {
-      "customStatuses": [
-        "open",
-        "under review",
-        "planned",
-        "in progress",
-        "complete",
-        "closed",
-        "long term",      // Your custom status
-        "needs research"  // Your custom status
-      ]
-    }
-  }
-}
-```
-
-### Add Board Aliases
-
-```json
-{
-  "canny": {
-    "workspace": {
-      "boards": {
-        "features": "board_abc123",
-        "bugs": "board_def456",
-        "integrations": "board_ghi789"
-      }
-    }
-  }
-}
-```
-
-Now you can use aliases:
-```json
-{
-  "tool": "canny_list_posts",
-  "params": {
-    "boardAlias": "features"  // Instead of board ID
-  }
-}
+{ "postID": "ABC123", "issueKey": "PROJ-456" }
 ```
 
 ## Troubleshooting
 
-### "API key is required" Error
+### "API key is required"
 
-Make sure `CANNY_API_KEY` is set in `.env` and the file is in the project root.
+Ensure `CANNY_API_KEY` is set in your environment or `.env` file.
 
-### "Invalid status" Error
+### "Invalid status"
 
-Your Canny workspace might have custom statuses. Add them to `config/default.json` under `customStatuses`.
+Your Canny workspace may have custom statuses. Add them in `config/default.json` under `customStatuses`.
 
-### "Rate limit exceeded" Error
+### "Rate limit exceeded"
 
-The server automatically retries. If persistent:
-- Wait 60 seconds
-- Reduce request frequency
-- Check if another process is using the API
+The server retries automatically. If the error persists, wait 60 seconds and reduce request frequency.
 
 ## Next Steps
 
-- Read the full [README](./README.md) for all features
-- Explore all [24 tools](./README.md#tools-24-total)
-- Try [PM-focused prompts](./README.md#prompts)
-- Check [Resources](./README.md#resources) for dashboard metrics
-
-## Get Help
-
-- Check [troubleshooting guide](./README.md#troubleshooting)
-- Review [Canny API docs](https://developers.canny.io/)
-- Open an issue on GitHub
-
-Happy product managing! 🚀
+- [Toolset Guide](TOOLSET_GUIDE.md) -- Configure which tools are available
+- [Prompt Configuration](PROMPT_CONFIGURATION.md) -- Add custom PM workflows
+- [Custom Prompts](custom_prompts.md) -- Advanced prompt examples
+- [Canny API Docs](https://developers.canny.io/api-reference)

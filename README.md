@@ -2,77 +2,264 @@
 [![Verified on MseeP](https://mseep.ai/badge.svg)](https://mseep.ai/app/5d4679fa-ba73-46e6-b94e-582a8533f594)
 # Canny MCP Server
 
-A production-ready Model Context Protocol (MCP) server for Canny feedback management. Integrate Canny with any MCP-compatible AI client to manage customer feedback, prioritize features, and streamline your product development workflow using natural language.
+A Model Context Protocol (MCP) server for Canny feedback management. Connect Canny to any MCP-compatible AI client to manage customer feedback, prioritize features, and streamline product development through natural language.
 
 ## Features
 
-- **25 Comprehensive Tools** - Full Canny API coverage for posts, comments, votes, users, categories, and Jira integration
-- **Token-Optimized** - 70-90% reduction in response size vs raw API
-- **Jira Integration** - Link posts to Jira issues seamlessly
-- **PM-Focused Prompts** - Built-in workflows for weekly triage, sprint planning, and executive reporting
-- **Smart Pagination** - Automatic cursor/skip handling
-- **Batch Operations** - Efficient bulk updates for status changes and tagging
-- **Configurable** - Flexible toolset selection and custom prompts
-- **Image Support**: Add images to posts and comments
-- **ETA Management**: Set and update ETAs with public/private visibility
-- **Owner Assignment**: Assign post owners for accountability
-- **Company Tracking**: Full company association with MRR/monthly spend
-- **Multi-Lookup**: Find users by ID, email, or custom userID
-- **Company Filtering**: Filter comments by company
-- **Status Changes**: Required changerID for audit trails
+- **24 Tools** — Full Canny API coverage: posts, comments, votes, users, categories, and Jira integration
+- **Token-Optimized** — 70–90% smaller responses than the raw API
+- **Jira Integration** — Link posts to Jira issues
+- **PM Workflows** — Built-in prompts for weekly triage, sprint planning, and executive reporting
+- **Smart Pagination** — Automatic cursor/skip handling
+- **Batch Operations** — Bulk status changes
+- **Configurable Toolsets** — Readonly by default; enable write tools selectively
 
 ## Prerequisites
 
-- **Node.js** v18.18+, v20.9+, or v22+ (LTS versions recommended)
-  - ⚠️ **Note**: Avoid Node v23 (non-LTS, unsupported by testing tools)
-  - Use [nvm](https://github.com/nvm-sh/nvm) for easy version management: `nvm use`
-- **npm** v9 or higher (comes with Node.js)
-- **MCP Client** - Any Model Context Protocol compatible client (e.g., Claude Code, Continue.dev, or custom implementations)
-- **Canny API Key** - Get yours at [canny.io/admin/settings/api](https://canny.io/admin/settings/api)
+- **Node.js** v18.18+, v20.9+, or v22+ (LTS versions)
+- **npm** v9+
+- **MCP Client** — Claude Code, Continue.dev, or any MCP-compatible client
+- **Canny API Key** — Get one at [canny.io/admin/settings/api](https://canny.io/admin/settings/api)
 
-## Installation
+## Quick Start with Claude Code
 
-### Step 1: Clone the Repository
+The fastest way to start: run `npx` directly through Claude Code. No clone, no build.
+
+### Step 1: Get Your Canny Credentials
+
+1. **API Key** — Visit [canny.io/admin/settings/api](https://canny.io/admin/settings/api)
+2. **Subdomain** — Your Canny workspace URL: `https://<subdomain>.canny.io`
+3. **Board ID** (optional) — Find it via the Canny admin URL or by running `canny_list_boards` after setup
+
+### Step 2: Add the MCP Server
 
 ```bash
-git clone https://github.com/opensourceops/canny-mcp-server.git
-cd canny-mcp-server
+claude mcp add --transport stdio canny \
+  --scope user \
+  --env CANNY_SUBDOMAIN=<COMPANY_SUBDOMAIN> \
+  --env CANNY_API_KEY=<CANNY_API_KEY> \
+  --env CANNY_DEFAULT_BOARD=<BOARD_ID> \
+  --env CANNY_TOOL_MODE=readonly \
+  -- npx -y @opensourceops/canny-mcp
 ```
 
-### Step 2: Install Dependencies
+Replace `<COMPANY_SUBDOMAIN>`, `<CANNY_API_KEY>`, and `<BOARD_ID>` with your values.
+
+### Step 3: Restart Claude Code
+
+Quit and reopen Claude Code for the new server to load.
+
+### Step 4: Verify
+
+Ask Claude:
+
+```
+List the available Canny tools.
+```
+
+You should see 24 tools, including `canny_list_posts`, `canny_get_post`, and `canny_filter_posts`.
+
+## Global Install
+
+To install the package globally:
 
 ```bash
-npm install
+npm install -g @opensourceops/canny-mcp
 ```
 
-### Step 3: Build the Project
+Then configure your MCP client to run `canny-mcp-server` instead of `npx`:
+
+```json
+{
+  "mcpServers": {
+    "canny": {
+      "command": "canny-mcp-server",
+      "env": {
+        "CANNY_API_KEY": "your_api_key",
+        "CANNY_SUBDOMAIN": "your_subdomain",
+        "CANNY_DEFAULT_BOARD": "your_board_id",
+        "CANNY_TOOL_MODE": "readonly"
+      }
+    }
+  }
+}
+```
+
+## Available Tools
+
+### Discovery (7 tools: 6 read-only, 1 write)
+- `canny_list_boards` — List all boards
+- `canny_list_tags` — List tags (optionally by board)
+- `canny_list_categories` — List categories
+- `canny_list_posts` — List posts with filters (status, author, company, tags)
+- `canny_filter_posts` — Filter by category, company, segment, tag slugs, and date ranges
+- `canny_get_post` — Get full post details with comments and votes
+- `canny_create_category` — Create a board category
+
+### Posts (4 write tools)
+- `canny_create_post` — Create a post (supports images, ETA, owner)
+- `canny_update_post` — Update title, description, ETA, or images
+- `canny_update_post_status` — Change status with optional voter notification
+- `canny_change_category` — Move a post to a different category
+
+### Engagement (6 tools: 2 read-only, 4 write)
+- `canny_list_comments` — List comments (filterable by company)
+- `canny_list_votes` — List votes
+- `canny_create_comment` — Add a comment (supports images, internal flag)
+- `canny_delete_comment` — Remove a comment
+- `canny_add_vote` — Add a vote
+- `canny_remove_vote` — Remove a vote
+
+### Users & Companies (4 tools: 2 read-only, 2 write)
+- `canny_get_user_details` — Look up a user by ID, email, or custom userID
+- `canny_list_companies` — List companies with MRR data
+- `canny_find_or_create_user` — Find or create a user with company associations
+- `canny_link_company` — Link a user to a company
+
+### Jira (2 write tools)
+- `canny_link_jira_issue` — Link a Jira issue to a post
+- `canny_unlink_jira_issue` — Unlink a Jira issue
+
+### Batch (1 write tool)
+- `canny_batch_update_status` — Update multiple post statuses at once
+
+## Configuration
+
+### Tool Modes
+
+The server runs in **readonly** mode by default (10 read-only tools). To enable write operations, set `CANNY_TOOL_MODE`:
+
+| Mode | Tools | Description |
+|------|-------|-------------|
+| `readonly` | 10 | Read-only tools only (default) |
+| `all` | 24 | All tools, including writes |
+| `discovery,posts` | varies | Specific toolsets (comma-separated) |
+
+Set via environment variable or `config/default.json`:
+
+```json
+{
+  "server": {
+    "toolMode": "all"
+  }
+}
+```
+
+Rebuild after changing `config/default.json`:
 
 ```bash
 npm run build
 ```
 
-### Step 4: Get Your Canny Credentials
+### Environment Variables
 
-1. **API Key**: Visit [canny.io/admin/settings/api](https://canny.io/admin/settings/api)
-2. **Board ID**: Visit your Canny board and copy the ID from the URL
-   - Example: `https://ideas.harness.io/admin/board/feature-request`
-   - Board ID is in the URL path or use `canny_list_boards` after setup
+**Canny API (required)**
 
-### Step 5: Configure Your MCP Client
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CANNY_API_KEY` | -- | Your Canny API key (required) |
+| `CANNY_BASE_URL` | `https://canny.io/api/v1` | Canny API base URL |
+| `CANNY_SUBDOMAIN` | auto-detected | Your Canny subdomain; auto-detected from `CANNY_BASE_URL` if `*.canny.io` |
+| `CANNY_CONFIG_PATH` | `config/default.json` | Path to the JSON config file |
 
-Add the server to your MCP client's configuration. The exact method depends on your client:
+**Workspace**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CANNY_DEFAULT_BOARD` | -- | Default board ID |
+| `CANNY_WORKSPACE_NAME` | `Default` | Workspace display name |
+| `CANNY_CUSTOM_STATUSES` | `open,under review,planned,in progress,complete,closed` | Comma-separated list of valid statuses |
+
+**Jira Integration**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CANNY_JIRA_ENABLED` | `false` | Enable Jira integration (`true`/`false`) |
+| `CANNY_JIRA_PROJECT_KEY` | -- | Jira project key (e.g., `PROJ`) |
+
+**Pagination & Display**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CANNY_PAGINATION_LIMIT` | `10` | Results per page |
+| `CANNY_PAGINATION_MAX` | `50` | Maximum total results |
+| `CANNY_COMPACT_MODE` | `true` | Return compact responses (`true`/`false`) |
+
+**Cache**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CANNY_CACHE_ENABLED` | `true` | Enable response caching (`true`/`false`) |
+| `CANNY_CACHE_MAX_SIZE` | `100` | Maximum cache entries |
+
+**Rate Limiting**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CANNY_RATE_LIMIT_REQUESTS` | `100` | Maximum requests per window |
+| `CANNY_RATE_LIMIT_WINDOW` | `60000` | Rate limit window in milliseconds |
+
+**Server**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `CANNY_TOOL_MODE` | `readonly` | `readonly`, `all`, or comma-separated toolsets |
+| `SERVER_TRANSPORT` | `stdio` | Transport mode: `stdio`, `http`, or `both` |
+| `SERVER_HTTP_PORT` | `3000` | HTTP server port (when transport includes `http`) |
+| `SERVER_HTTP_HOST` | `0.0.0.0` | HTTP server bind address |
+
+**Logging**
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOG_LEVEL` | `info` | Log level: `debug`, `info`, `warn`, `error` |
+| `LOG_FORMAT` | `json` | Log format: `json` or `pretty` |
+
+### Custom Prompts
+
+The server ships with 5 built-in prompts (`weekly_triage`, `sprint_planning`, `executive_summary`, `jira_sync_status`, `customer_impact`). Add your own in `config/default.json`:
+
+```json
+{
+  "prompts": [
+    {
+      "name": "my_workflow",
+      "description": "Custom triage workflow",
+      "template": "Analyze feedback and..."
+    }
+  ]
+}
+```
+
+See [Prompt Configuration](docs/PROMPT_CONFIGURATION.md) for the full guide and [Custom Prompts](docs/custom_prompts.md) for advanced examples.
+
+## Local Development Environment
+
+Clone the repository to modify the server, run tests, or contribute.
+
+### Step 1: Clone and Build
+
+```bash
+git clone https://github.com/opensourceops/canny-mcp-server.git
+cd canny-mcp-server
+npm install
+npm run build
+```
+
+### Step 2: Configure Your MCP Client
 
 #### Option A: Claude Code (via CLI)
 
 ```bash
 claude mcp add --transport stdio canny \
-  --env CANNY_API_KEY=your_api_key_here \
-  --env CANNY_DEFAULT_BOARD=your_board_id_here \
+  --env CANNY_API_KEY=your_api_key \
+  --env CANNY_SUBDOMAIN=your_subdomain \
+  --env CANNY_DEFAULT_BOARD=your_board_id \
   --env CANNY_CONFIG_PATH=$(pwd)/config/default.json \
   -- $(which node) $(pwd)/dist/index.js
 ```
 
-#### Option B: Manual Configuration
+#### Option B: Manual JSON Configuration
 
 Add to your MCP client's config file:
 
@@ -83,8 +270,9 @@ Add to your MCP client's config file:
       "command": "node",
       "args": ["/absolute/path/to/canny-mcp-server/dist/index.js"],
       "env": {
-        "CANNY_API_KEY": "your_api_key_here",
-        "CANNY_DEFAULT_BOARD": "your_board_id_here",
+        "CANNY_API_KEY": "your_api_key",
+        "CANNY_SUBDOMAIN": "your_subdomain",
+        "CANNY_DEFAULT_BOARD": "your_board_id",
         "CANNY_CONFIG_PATH": "/absolute/path/to/canny-mcp-server/config/default.json"
       }
     }
@@ -92,233 +280,85 @@ Add to your MCP client's config file:
 }
 ```
 
-Replace:
-- `your_api_key_here` with your Canny API key
-- `your_board_id_here` with your board ID
-- `/absolute/path/to/canny-mcp-server` with the actual path
+### Step 3: Restart and Verify
 
-### Step 6: Restart Your MCP Client
-
-Completely quit and restart your MCP client for changes to take effect.
-
-### Step 7: Verify Installation
-
-In your MCP client, ask:
-```
-Can you list the available Canny tools?
-```
-
-You should see a list of 25 tools including `canny_list_posts`, `canny_create_post`, `canny_update_post`, `canny_add_vote`, etc.
-
-## Quick Test
-
-Try these commands in your MCP client:
+Restart your MCP client, then ask:
 
 ```
-Show me the latest feature requests from Canny
+Show me the latest feature requests from Canny.
 ```
-
-```
-Get details for Canny post ID: <your-post-id>
-```
-
-## Available Tools
-
-### Discovery (4 tools)
-- `canny_list_boards` - List all boards
-- `canny_list_categories` - List categories
-- `canny_list_tags` - List available tags
-- `canny_list_companies` - List companies
-
-### Posts (7 tools)
-- `canny_list_posts` - List posts with filters
-- `canny_get_post` - Get detailed post info
-- `canny_create_post` - Create new post with images, ETA, owner
-- `canny_update_post` - Update post details, title, description, ETA, images
-- `canny_update_post_status` - Change post status with notifications
-- `canny_change_category` - Move post to different category
-- `canny_create_category` - Create new board category
-
-### Engagement (6 tools)
-- `canny_list_comments` - List post comments with company filtering
-- `canny_create_comment` - Add comment with image support
-- `canny_delete_comment` - Remove comment
-- `canny_list_votes` - List votes
-- `canny_add_vote` - Add vote
-- `canny_remove_vote` - Remove vote
-
-### Users (3 tools)
-- `canny_find_or_create_user` - Get or create user with company associations
-- `canny_get_user_details` - Get user info by ID, email, or userID
-- `canny_link_company` - Link user to company with MRR tracking
-
-### Jira (2 tools)
-- `canny_link_jira_issue` - Link Jira issue to post
-- `canny_unlink_jira_issue` - Unlink Jira issue
-
-### Batch Operations (3 tools)
-- `canny_batch_update_status` - Update multiple post statuses
-- `canny_batch_tag` - Tag multiple posts
-- `canny_batch_merge` - Merge duplicate posts
-
-## Configuration
-
-### Tool Modes
-
-By default, the server runs in **readonly** mode. To enable write operations:
-
-**Edit `config/default.json`:**
-
-```json
-{
-  "server": {
-    "toolMode": "all"  // Enable all tools including write operations
-  }
-}
-```
-
-**Rebuild after changes:**
-```bash
-npm run build
-```
-
-**Available modes:**
-- `"readonly"` - Only read operations (default, safe)
-- `"all"` - All tools including write operations
-- `"posts,engagement"` - Specific toolsets (comma-separated)
-
-### Custom Prompts
-
-Add custom PM workflows by editing `config/default.json`:
-
-```json
-{
-  "prompts": [
-    {
-      "name": "my_workflow",
-      "description": "My custom workflow",
-      "template": "Analyze feedback and..."
-    }
-  ]
-}
-```
-
-See [docs/PROMPT_CONFIGURATION.md](docs/PROMPT_CONFIGURATION.md) for details.
 
 ## Documentation
 
-- **[Quick Start Guide](docs/QUICKSTART.md)** - Get started quickly
-- **[Prompt Configuration](docs/PROMPT_CONFIGURATION.md)** - Configure custom prompts
-- **[Toolset Guide](docs/TOOLSET_GUIDE.md)** - Understand toolsets and modes
-- **[Custom Prompts](docs/custom_prompts.md)** - Advanced prompt examples
+- [Quick Start Guide](docs/QUICKSTART.md)
+- [Toolset Guide](docs/TOOLSET_GUIDE.md)
+- [Prompt Configuration](docs/PROMPT_CONFIGURATION.md)
+- [Custom Prompts](docs/custom_prompts.md)
 
 ## Troubleshooting
 
 ### API Key Issues
 
-Test your API key:
+Test your key directly:
+
 ```bash
 curl https://canny.io/api/v1/boards/list --data apiKey=YOUR_API_KEY
 ```
 
-Should return your boards list.
+This should return your boards.
 
-### Tools Not Working
+### Tools Not Appearing
 
-1. **Rebuild after config changes:**
-   ```bash
-   npm run build
-   ```
+1. Rebuild after config changes: `npm run build`
+2. Restart your MCP client (quit and reopen)
+3. Check `CANNY_TOOL_MODE` — `readonly` excludes write tools
+4. Use absolute paths in manual JSON configuration
 
-2. **Restart your MCP client completely** (quit and reopen)
+### Node.js Version Warnings
 
-3. **Check toolMode** in `config/default.json`
+Use Node.js LTS versions (18.18+, 20.9+, or 22+). Node v23 is non-LTS and unsupported by testing tools. Switch with `nvm use 20` or `nvm use 22`.
 
-4. **Verify paths are absolute** in your MCP client configuration
-
-### npm Install Warnings
-
-#### EBADENGINE Warnings (Node v23)
-
-**Symptoms:**
-```
-npm warn EBADENGINE Unsupported engine {
-  package: 'expect@30.2.0',
-  required: { node: '^18.14.0 || ^20.0.0 || ^22.0.0 || >=24.0.0' }
-}
-```
-
-**Solution:**
-- Use Node.js **LTS versions** (18.18+, 20.9+, or 22+)
-- Node v23 is **non-LTS** and unsupported by Jest
-- Switch versions: `nvm use 20` or `nvm use 22`
-- Warnings are **safe to ignore** if you're on v23 (tests still pass)
-
-#### Deprecated Package Warnings
-
-**Symptoms:**
-```
-npm warn deprecated eslint@8.57.1: This version is no longer supported
-npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
-```
-
-**Impact:**
-- These are **devDependencies** (testing/linting only)
-- **Production runtime unaffected**
-- Will be resolved in upcoming dependency updates
-
-**What to do:**
-- ✅ Safe to ignore for now
-- ✅ All tests pass (104/104)
-- ✅ Build succeeds
-- 📋 Planned update to ESLint v9 and modern tooling
+Deprecated package warnings (ESLint, glob) affect only devDependencies and do not affect production runtime.
 
 ## Security
 
-- **Never commit** `.env` files or API keys to Git
-- Use **readonly mode** for general use
-- Enable **write mode** only when needed
-- Keep your `CANNY_API_KEY` secret
+- Never commit `.env` files or API keys
+- Use `readonly` mode for general use
+- Enable write tools only when needed
+- Keep `CANNY_API_KEY` secret
 
 ## Project Structure
 
 ```
-canny-mcp/
-├── src/                 # TypeScript source code
-│   ├── index.ts        # Main entry point
-│   ├── server.ts       # MCP server implementation
-│   ├── api/            # Canny API client
-│   ├── tools/          # MCP tools
-│   ├── prompts/        # Built-in prompts
-│   └── types/          # TypeScript definitions
+canny-mcp-server/
+├── src/                 # TypeScript source
+│   ├── index.ts         # Entry point
+│   ├── server.ts        # MCP server
+│   ├── api/             # Canny API client
+│   ├── tools/           # MCP tools
+│   ├── prompts/         # Built-in prompts
+│   └── types/           # Type definitions
 ├── config/
-│   └── default.json    # Server configuration
-├── docs/               # Documentation
-├── dist/               # Compiled JavaScript (generated)
+│   └── default.json     # Server configuration
+├── docs/                # Documentation
+├── dist/                # Compiled output (generated)
 ├── package.json
 └── tsconfig.json
 ```
 
 ## Contributing
 
-Contributions are welcome! Please:
-
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Add tests
 5. Submit a pull request
 
 ## License
 
-Apache 2.0 License - See [LICENSE](LICENSE) file for details
+Apache 2.0 — See [LICENSE](LICENSE).
 
 ## Support
 
-- **Issues**: Report bugs and feature requests via GitHub Issues
-- **Documentation**: See `docs/` folder for detailed guides
-- **API Reference**: [Canny API Documentation](https://developers.canny.io/api-reference)
-
----
-
-**Built with ❤️ for Product Managers**
+- **Issues** — [GitHub Issues](https://github.com/opensourceops/canny-mcp-server/issues)
+- **API Reference** — [Canny API Documentation](https://developers.canny.io/api-reference)

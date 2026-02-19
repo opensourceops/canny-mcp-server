@@ -96,6 +96,22 @@ export interface CannyJiraIssue {
   url: string;
 }
 
+/**
+ * Minimal post shape returned by the internal Canny search endpoint.
+ */
+export interface InternalPost {
+  id: string;
+  _id: string;
+  title: string;
+  details: string;
+  score: number;
+  status: string;
+  categoryID?: string;
+  boardID?: string;
+  commentCount?: number;
+  [key: string]: unknown;
+}
+
 // Compact types for token optimization
 export interface CompactPost {
   id: string;

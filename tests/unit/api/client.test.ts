@@ -502,6 +502,98 @@ describe('CannyClient', () => {
     });
   });
 
+  describe('searchPosts', () => {
+    it('should construct correct URL from subdomain', async () => {
+      mockedAxios.post = jest.fn().mockResolvedValue({
+        data: { result: { posts: [], hasNextPage: false } },
+      });
+
+      await client.searchPosts('mycompany', {});
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        'https://mycompany.canny.io/api/posts/get',
+        expect.objectContaining({ apiKey: 'test-api-key' }),
+        expect.any(Object)
+      );
+    });
+
+    it('should wrap status values with $in', async () => {
+      mockedAxios.post = jest.fn().mockResolvedValue({
+        data: { result: { posts: [], hasNextPage: false } },
+      });
+
+      await client.searchPosts('mycompany', { status: ['open', 'planned'] });
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ status: { $in: ['open', 'planned'] } }),
+        expect.any(Object)
+      );
+    });
+
+    it('should normalize _id to id on returned posts', async () => {
+      mockedAxios.post = jest.fn().mockResolvedValue({
+        data: {
+          result: {
+            posts: [{ _id: 'abc123', title: 'Test', details: '', score: 5, status: 'open' }],
+            hasNextPage: false,
+          },
+        },
+      });
+
+      const result = await client.searchPosts('mycompany', {});
+
+      expect(result.posts[0].id).toBe('abc123');
+      expect(result.posts[0]._id).toBe('abc123');
+    });
+
+    it('should fall back to response.data when result is absent', async () => {
+      mockedAxios.post = jest.fn().mockResolvedValue({
+        data: {
+          posts: [{ _id: 'xyz', title: 'Fallback', details: '', score: 1, status: 'open' }],
+          hasNextPage: true,
+        },
+      });
+
+      const result = await client.searchPosts('mycompany', {});
+
+      expect(result.posts).toHaveLength(1);
+      expect(result.hasNextPage).toBe(true);
+    });
+
+    it('should reject invalid subdomains', async () => {
+      await expect(client.searchPosts('evil.com/foo#', {})).rejects.toThrow(
+        'Invalid Canny subdomain'
+      );
+    });
+
+    it('should reject subdomains with slashes', async () => {
+      await expect(client.searchPosts('a/b', {})).rejects.toThrow(
+        'Invalid Canny subdomain'
+      );
+    });
+
+    it('should reject empty subdomain', async () => {
+      await expect(client.searchPosts('', {})).rejects.toThrow(
+        'Invalid Canny subdomain'
+      );
+    });
+
+    it('should accept valid subdomains with hyphens', async () => {
+      mockedAxios.post = jest.fn().mockResolvedValue({
+        data: { result: { posts: [], hasNextPage: false } },
+      });
+
+      await client.searchPosts('my-company', {});
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        'https://my-company.canny.io/api/posts/get',
+        expect.any(Object),
+        expect.any(Object)
+      );
+    });
+  });
+
   describe('Error Handling', () => {
     it('should handle API errors', async () => {
       const error = {

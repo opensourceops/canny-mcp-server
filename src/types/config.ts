@@ -25,6 +25,7 @@ export interface CannyMCPConfig {
 export interface CannyConfig {
   apiKey: string;
   baseUrl: string;
+  subdomain?: string;
   workspace: WorkspaceConfig;
   prioritization: PrioritizationConfig;
   jira: JiraConfig;

@@ -15,6 +15,7 @@ import { ConfigLoader } from '../../src/config/loader';
 const HAS_API_KEY = !!process.env.CANNY_API_KEY;
 
 const READONLY_TOOL_NAMES = [
+  'canny_filter_posts',
   'canny_get_post',
   'canny_get_user_details',
   'canny_list_boards',
@@ -103,8 +104,8 @@ describeE2E('E2E: Readonly Tools via MCP Protocol', () => {
       tools = result.tools;
     });
 
-    test('returns exactly 9 tools', () => {
-      expect(tools).toHaveLength(9);
+    test('returns exactly 10 tools', () => {
+      expect(tools).toHaveLength(10);
     });
 
     test('contains all expected readonly tool names', () => {
@@ -266,6 +267,82 @@ describeE2E('E2E: Readonly Tools via MCP Protocol', () => {
         }
       }
     }, 30000);
+  });
+
+  describe('canny_filter_posts', () => {
+    const HAS_SUBDOMAIN = !!process.env.CANNY_SUBDOMAIN;
+
+    (HAS_SUBDOMAIN ? test : test.skip)(
+      'returns posts filtered by category',
+      async () => {
+        // First discover categories from any board
+        const categoriesResult = await callToolAndParse(client, 'canny_list_categories', {
+          boardID: discoveredBoardID,
+        });
+
+        if (categoriesResult.categories.length === 0) {
+          console.warn('No categories found; skipping category filter test');
+          return;
+        }
+
+        const category = categoriesResult.categories[0];
+        const categoryURLName = category.name
+          .toLowerCase()
+          .replace(/\s+/g, '-')
+          .replace(/[^a-z0-9-]/g, '');
+
+        const result = await callToolAndParse(client, 'canny_filter_posts', {
+          categoryURLNames: [categoryURLName],
+        });
+        expect(Array.isArray(result.posts)).toBe(true);
+        expect(result).toHaveProperty('hasNextPage');
+        expect(result).toHaveProperty('page');
+
+        // All returned posts should have the matching categoryID
+        if (result.posts.length > 0) {
+          for (const post of result.posts) {
+            expect(post.categoryID).toBe(category.id);
+          }
+        }
+      },
+      30000
+    );
+
+    (HAS_SUBDOMAIN ? test : test.skip)(
+      'pagination: page 2 returns different posts than page 1',
+      async () => {
+        const page1 = await callToolAndParse(client, 'canny_filter_posts', {
+          page: 1,
+        });
+        expect(Array.isArray(page1.posts)).toBe(true);
+
+        if (page1.hasNextPage) {
+          const page2 = await callToolAndParse(client, 'canny_filter_posts', {
+            page: 2,
+          });
+          expect(Array.isArray(page2.posts)).toBe(true);
+          expect(page2.page).toBe(2);
+
+          const page1Ids = new Set(page1.posts.map((p: { id: string }) => p.id));
+          for (const post of page2.posts) {
+            expect(page1Ids.has(post.id)).toBe(false);
+          }
+        }
+      },
+      30000
+    );
+
+    (!HAS_SUBDOMAIN ? test : test.skip)(
+      'returns error when subdomain not configured',
+      async () => {
+        const rawResult = await client.callTool({
+          name: 'canny_filter_posts',
+          arguments: {},
+        });
+        expect(rawResult.isError).toBe(true);
+      },
+      30000
+    );
   });
 
   describe('canny_get_post', () => {

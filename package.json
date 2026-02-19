@@ -1,11 +1,11 @@
 {
-  "name": "@canny-mcp/server",
+  "name": "@opensourceops/canny-mcp",
   "version": "1.2.0",
   "description": "MCP server for Canny feedback management with Jira integration",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "canny-mcp-server": "./dist/index.js"
+    "canny-mcp-server": "dist/index.js"
   },
   "scripts": {
     "build": "tsc",
@@ -32,7 +32,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/opensourceops/canny-mcp-server.git"
+    "url": "git+https://github.com/opensourceops/canny-mcp-server.git"
   },
   "homepage": "https://github.com/opensourceops/canny-mcp-server#readme",
   "bugs": {
@@ -44,7 +44,7 @@
     "config/prompts.example.json"
   ],
   "engines": {
-    "node": "^18.18.0 || ^20.9.0 || ^22.0.0",
+    "node": "^20.9.0 || ^22.0.0 || ^24.0.0",
     "npm": ">=9.0.0"
   },
   "dependencies": {

@@ -3,7 +3,29 @@
  */
 
 import * as path from 'path';
-import { ConfigLoader } from '../../../src/config/loader';
+import { ConfigLoader, extractSubdomain } from '../../../src/config/loader';
+
+describe('extractSubdomain', () => {
+  it('should extract subdomain from https://<sub>.canny.io/api/v1', () => {
+    expect(extractSubdomain('https://foo.canny.io/api/v1')).toBe('foo');
+  });
+
+  it('should extract subdomain from http://<sub>.canny.io', () => {
+    expect(extractSubdomain('http://foo.canny.io')).toBe('foo');
+  });
+
+  it('should return undefined for https://canny.io/api/v1 (no subdomain)', () => {
+    expect(extractSubdomain('https://canny.io/api/v1')).toBeUndefined();
+  });
+
+  it('should return undefined for a non-canny URL', () => {
+    expect(extractSubdomain('https://evil.com')).toBeUndefined();
+  });
+
+  it('should handle subdomains with hyphens', () => {
+    expect(extractSubdomain('https://my-company.canny.io/api/v1')).toBe('my-company');
+  });
+});
 
 describe('ConfigLoader', () => {
   const fixturesPath = path.join(__dirname, '../../fixtures');
