@@ -11,6 +11,7 @@ import { listCategories, createCategory } from './discovery/categories.js';
 
 // Post tools
 import { listPosts } from './posts/list.js';
+import { filterPosts } from './posts/search.js';
 import { getPost } from './posts/get.js';
 import { createPost, updatePost, updatePostStatus, changeCategory } from './posts/crud.js';
 
@@ -29,11 +30,12 @@ import { linkJiraIssue, unlinkJiraIssue } from './jira/link.js';
 import { batchUpdateStatus } from './batch/status.js';
 
 export const ALL_TOOLS: MCPTool[] = [
-  // Discovery & List (5 read-only tools)
+  // Discovery & List (6 read-only tools)
   listBoards,
   listTags,
   listCategories,
   listPosts,
+  filterPosts,
   getPost,
 
   // Posts Management (5 write tools)
@@ -65,7 +67,7 @@ export const ALL_TOOLS: MCPTool[] = [
   batchUpdateStatus,
 ];
 
-// Total: 23 tools (9 read-only, 14 write)
+// Total: 24 tools (10 read-only, 14 write)
 
 export function getToolByName(name: string): MCPTool | undefined {
   return ALL_TOOLS.find((tool) => tool.name === name);

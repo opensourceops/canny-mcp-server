@@ -15,6 +15,7 @@ import {
   CannyCategory,
   CannyUser,
   CannyCompany,
+  InternalPost,
   ListPostsParams,
   CreatePostParams,
   UpdatePostParams,
@@ -300,6 +301,82 @@ export class CannyClient {
     monthlySpend?: number;
   }): Promise<CannyCompany> {
     return this.request<CannyCompany>('companies/create', params);
+  }
+
+  // ===== Internal Search (undocumented endpoint) =====
+
+  /**
+   * Search posts using the internal Canny endpoint that supports
+   * category, company, segment, and date-range filtering.
+   */
+  async searchPosts(
+    subdomain: string,
+    params: {
+      boardURLNames?: string[];
+      categoryURLNames?: string[];
+      companyURLNames?: string[];
+      tagURLNames?: string[];
+      segmentURLName?: string;
+      status?: string[];
+      postCreatedDateRange?: string[];
+      voteCreatedDateRange?: string[];
+      sort?: string;
+      pages?: number;
+    }
+  ): Promise<{ posts: InternalPost[]; hasNextPage: boolean }> {
+    if (!/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i.test(subdomain)) {
+      throw new Error(`Invalid Canny subdomain: "${subdomain}". Must contain only alphanumeric characters and hyphens.`);
+    }
+
+    const url = `https://${subdomain}.canny.io/api/posts/get`;
+
+    const body: Record<string, unknown> = {
+      apiKey: this.apiKey,
+    };
+
+    if (params.boardURLNames) body.boardURLNames = params.boardURLNames;
+    if (params.categoryURLNames) body.categoryURLNames = params.categoryURLNames;
+    if (params.companyURLNames) body.companyURLNames = params.companyURLNames;
+    if (params.tagURLNames) body.tagURLNames = params.tagURLNames;
+    if (params.segmentURLName) body.segmentURLName = params.segmentURLName;
+    if (params.status) body.status = { $in: params.status };
+    if (params.postCreatedDateRange) body.postCreatedDateRange = params.postCreatedDateRange;
+    if (params.voteCreatedDateRange) body.voteCreatedDateRange = params.voteCreatedDateRange;
+    if (params.sort) body.sort = params.sort;
+    if (params.pages) body.pages = params.pages;
+
+    return withRetry(
+      async () => {
+        try {
+          const response = await axios.post(url, body, {
+            timeout: 30000,
+            headers: { 'Content-Type': 'application/json' },
+          });
+
+          this.logger.debug(`Internal API request successful: ${url}`);
+
+          const result = response.data?.result ?? response.data;
+          const posts: InternalPost[] = (result.posts || []).map(
+            (p: Record<string, unknown>) => ({
+              ...p,
+              id: p._id as string,
+            })
+          );
+
+          return {
+            posts,
+            hasNextPage: result.hasNextPage ?? false,
+          };
+        } catch (error: unknown) {
+          this.logger.error(`Internal API request failed: ${url}`, {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          throw mapHTTPError(error);
+        }
+      },
+      3,
+      1000
+    );
   }
 
   // ===== Jira Operations =====

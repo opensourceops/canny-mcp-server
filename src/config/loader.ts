@@ -6,6 +6,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CannyMCPConfig } from '../types/config.js';
 
+/**
+ * Extract subdomain from a Canny base URL (e.g., "https://foo.canny.io/api/v1" -> "foo").
+ */
+export function extractSubdomain(baseUrl: string): string | undefined {
+  const match = baseUrl.match(/^https?:\/\/([^.]+)\.canny\.io/);
+  return match ? match[1] : undefined;
+}
+
 export class ConfigLoader {
   /**
    * Load configuration with environment variable expansion.
@@ -56,6 +64,12 @@ export class ConfigLoader {
 
     if (process.env.CANNY_BASE_URL !== undefined) {
       config.canny.baseUrl = process.env.CANNY_BASE_URL;
+    }
+    // Resolve subdomain: CANNY_SUBDOMAIN env > auto-detect from base URL
+    if (process.env.CANNY_SUBDOMAIN !== undefined) {
+      config.canny.subdomain = process.env.CANNY_SUBDOMAIN;
+    } else {
+      config.canny.subdomain = extractSubdomain(config.canny.baseUrl);
     }
     if (process.env.CANNY_DEFAULT_BOARD !== undefined) {
       config.canny.workspace.defaultBoardId = process.env.CANNY_DEFAULT_BOARD;
@@ -131,6 +145,12 @@ export class ConfigLoader {
     }
     if (process.env.CANNY_BASE_URL !== undefined) {
       config.canny.baseUrl = process.env.CANNY_BASE_URL;
+    }
+    // Resolve subdomain: CANNY_SUBDOMAIN env > auto-detect from base URL
+    if (process.env.CANNY_SUBDOMAIN !== undefined) {
+      config.canny.subdomain = process.env.CANNY_SUBDOMAIN;
+    } else if (!config.canny.subdomain) {
+      config.canny.subdomain = extractSubdomain(config.canny.baseUrl);
     }
     if (process.env.CANNY_DEFAULT_BOARD !== undefined) {
       config.canny.workspace.defaultBoardId = process.env.CANNY_DEFAULT_BOARD;

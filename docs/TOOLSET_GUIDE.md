@@ -1,370 +1,161 @@
-# Canny MCP Server - Toolset Selection Guide
+# Toolset Guide
 
 ## Overview
 
-The Canny MCP Server provides flexible toolset selection, allowing you to enable exactly the tools you need for your workflow. This guide explains how to configure and use toolsets.
+The Canny MCP Server organizes its 24 tools into 6 toolsets. You enable toolsets through the `CANNY_TOOL_MODE` environment variable or `config/default.json`.
 
-## Quick Answers
+## Tool Modes
 
-### Q: How many toolsets are there?
+| Mode | Tools Enabled | Description |
+|------|---------------|-------------|
+| `readonly` | 10 | Read-only tools only (default) |
+| `all` | 24 | All tools |
+| `discovery` | 7 | Discovery & list operations |
+| `posts` | 4 | Post write operations |
+| `engagement` | 6 | Comments & votes |
+| `users` | 4 | Users & companies |
+| `jira` | 2 | Jira integration |
+| `batch` | 1 | Batch operations |
+| Comma-separated | Mixed | Custom combination (e.g., `discovery,posts`) |
 
-**6 toolsets:**
+## Configuration
 
-1. **discovery** (5 tools) - Discovery & list operations
-2. **posts** (5 tools) - Post management
-3. **engagement** (6 tools) - Comments & votes
-4. **users** (4 tools) - Users & companies
-5. **jira** (2 tools) - Jira integration
-6. **batch** (3 tools) - Batch operations
+### Environment variable
 
-**Total: 25 tools** (9 read-only + 16 write)
+```bash
+CANNY_TOOL_MODE=readonly           # Default
+CANNY_TOOL_MODE=all                # All tools
+CANNY_TOOL_MODE=discovery          # Only discovery
+CANNY_TOOL_MODE=discovery,posts    # Discovery + Posts
+```
 
-### Q: By default, are read-only tools enabled?
-
-**Yes!** The default `toolMode` is `"readonly"`, which enables only the 9 read-only tools for maximum safety.
-
-### Q: Can I enable all toolsets with keyword "all"?
-
-**Yes!** Set `toolMode: "all"` to enable all 25 tools.
-
-### Q: Is the base URL hard-coded?
-
-**No!** The base URL is fully configurable:
-- Environment variable: `CANNY_BASE_URL`
-- Default value: `https://canny.io/api/v1`
-- Supports custom endpoints for proxies or mock servers
-
-## Toolset Configuration
-
-### Configuration Options
+### Config file
 
 ```json
 {
   "server": {
-    "toolMode": "readonly"  // Default
+    "toolMode": "readonly"
   }
 }
-```
-
-### Available Modes
-
-| Mode | Tools | Description |
-|------|-------|-------------|
-| `"readonly"` | 9 | **Default** - Only read-only tools (safest) |
-| `"all"` | 25 | All tools (read + write operations) |
-| `"discovery"` | 5 | Discovery & list operations only |
-| `"posts"` | 5 | Post management operations only |
-| `"engagement"` | 6 | Comments & votes operations only |
-| `"users"` | 4 | User & company operations only |
-| `"jira"` | 2 | Jira integration operations only |
-| `"batch"` | 3 | Batch operations only |
-| Comma-separated | Mixed | Custom combination of toolsets |
-
-### Environment Variable
-
-```bash
-# In .env file
-TOOL_MODE=readonly           # Default
-TOOL_MODE=all                # All tools
-TOOL_MODE=discovery          # Only discovery
-TOOL_MODE=discovery,posts    # Discovery + Posts
 ```
 
 ## Toolset Breakdown
 
-### 1. Discovery Toolset (5 tools - all read-only)
+### 1. Discovery (7 tools: 6 read-only, 1 write)
 
-```bash
-toolMode: "discovery"
-```
+| Tool | Read-Only | Description |
+|------|-----------|-------------|
+| `canny_list_boards` | Yes | List all boards |
+| `canny_list_tags` | Yes | List tags (optionally by board) |
+| `canny_list_categories` | Yes | List categories |
+| `canny_list_posts` | Yes | List posts with filters |
+| `canny_filter_posts` | Yes | Filter by category, company, segment, tag, date range |
+| `canny_get_post` | Yes | Get full post details |
+| `canny_create_category` | No | Create a board category |
 
-**Tools:**
-- `canny_list_boards` - Get all available boards
-- `canny_list_posts` - Search and filter posts
-- `canny_get_post` - Get single post details
-- `canny_list_tags` - Get available tags
-- `canny_list_categories` - Get board categories
+### 2. Posts (4 tools: all write)
 
-**Use case:** Exploring and searching Canny data without modification
+| Tool | Description |
+|------|-------------|
+| `canny_create_post` | Create a post (images, ETA, owner) |
+| `canny_update_post` | Update title, description, ETA, images |
+| `canny_update_post_status` | Change status with optional notification |
+| `canny_change_category` | Move a post to a different category |
 
-### 2. Posts Toolset (5 tools - all write)
+### 3. Engagement (6 tools: 2 read-only, 4 write)
 
-```bash
-toolMode: "posts"
-```
+| Tool | Read-Only | Description |
+|------|-----------|-------------|
+| `canny_list_comments` | Yes | List comments (filterable by company) |
+| `canny_list_votes` | Yes | List votes |
+| `canny_create_comment` | No | Add a comment (images, internal flag) |
+| `canny_delete_comment` | No | Remove a comment |
+| `canny_add_vote` | No | Add a vote |
+| `canny_remove_vote` | No | Remove a vote |
 
-**Tools:**
-- `canny_create_post` - Create new feedback post with images, ETA, owner
-- `canny_update_post` - Update post details, title, description, ETA, images
-- `canny_update_post_status` - Change post status with changerID audit
-- `canny_change_category` - Move post to different category
-- `canny_create_category` - Create new board category with admin subscriptions
+### 4. Users (4 tools: 2 read-only, 2 write)
 
-**Use case:** Managing post lifecycle, organization, and board structure
+| Tool | Read-Only | Description |
+|------|-----------|-------------|
+| `canny_get_user_details` | Yes | Look up user by ID, email, or userID |
+| `canny_list_companies` | Yes | List companies with MRR data |
+| `canny_find_or_create_user` | No | Find or create a user |
+| `canny_link_company` | No | Link a user to a company |
 
-### 3. Engagement Toolset (6 tools - 2 read, 4 write)
+### 5. Jira (2 tools: all write)
 
-```bash
-toolMode: "engagement"
-```
+| Tool | Description |
+|------|-------------|
+| `canny_link_jira_issue` | Link a Jira issue to a post |
+| `canny_unlink_jira_issue` | Unlink a Jira issue |
 
-**Read-only tools:**
-- `canny_list_comments` - List post comments with company filtering
-- `canny_list_votes` - List post votes
+### 6. Batch (1 tool: write)
 
-**Write tools:**
-- `canny_create_comment` - Add comment to post with image support
-- `canny_delete_comment` - Remove comment
-- `canny_add_vote` - Vote on behalf of user
-- `canny_remove_vote` - Remove vote
+| Tool | Description |
+|------|-------------|
+| `canny_batch_update_status` | Update multiple post statuses at once |
 
-**Use case:** Managing user engagement with feedback and company insights
+## Read-Only Mode
 
-### 4. Users Toolset (4 tools - 2 read, 2 write)
+The default `readonly` mode enables 10 tools:
 
-```bash
-toolMode: "users"
-```
+- All 6 read-only tools from **discovery**
+- 2 read-only tools from **engagement** (`list_comments`, `list_votes`)
+- 2 read-only tools from **users** (`get_user_details`, `list_companies`)
 
-**Read-only tools:**
-- `canny_get_user_details` - Get user information by ID, email, or userID
-- `canny_list_companies` - List companies
-
-**Write tools:**
-- `canny_find_or_create_user` - Get or create user with company associations
-- `canny_link_company` - Link user to company with MRR tracking
-
-**Use case:** Managing users, company associations, and revenue tracking
-
-### 5. Jira Toolset (2 tools - all write)
-
-```bash
-toolMode: "jira"
-```
-
-**Tools:**
-- `canny_link_jira_issue` - Link Jira issue to Canny post
-- `canny_unlink_jira_issue` - Remove Jira link
-
-**Use case:** Integrating Canny feedback with Jira development workflow
-
-### 6. Batch Toolset (3 tools - all write)
-
-```bash
-toolMode: "batch"
-```
-
-**Tools:**
-- `canny_batch_update_status` - Bulk status updates
-- `canny_batch_tag` - Bulk tagging operations
-- `canny_batch_merge` - Merge duplicate posts
-
-**Use case:** Efficient bulk operations on multiple posts
+No data modification is possible in this mode.
 
 ## Common Configurations
 
-### 1. Read-Only Access (Default)
-
-**Safest option** - No data modification possible
+### Demo or reporting (read-only)
 
 ```json
-{
-  "server": {
-    "toolMode": "readonly"
-  }
-}
+{ "server": { "toolMode": "readonly" } }
 ```
 
-**Tools:** 9 read-only tools from discovery, engagement, and users toolsets
+10 tools. Safe for demonstrations and reporting.
 
-### 2. Full Access
-
-**Complete control** - All operations enabled
+### Product manager workflow
 
 ```json
-{
-  "server": {
-    "toolMode": "all"
-  }
-}
+{ "server": { "toolMode": "discovery,posts,engagement" } }
 ```
 
-**Tools:** All 25 tools
+17 tools. Discover, manage posts, and engage with users.
 
-### 3. Product Manager Workflow
-
-**Discovery + Post Management + Engagement**
+### Integration focus
 
 ```json
-{
-  "server": {
-    "toolMode": "discovery,posts,engagement"
-  }
-}
+{ "server": { "toolMode": "jira,users" } }
 ```
 
-**Tools:** 16 tools (5 discovery + 5 posts + 6 engagement)
+6 tools. Jira linking and user management.
 
-### 4. Integration Focus
-
-**Jira Integration + User Management**
+### Full access
 
 ```json
-{
-  "server": {
-    "toolMode": "jira,users"
-  }
-}
+{ "server": { "toolMode": "all" } }
 ```
 
-**Tools:** 6 tools (2 Jira + 4 users)
-
-### 5. Bulk Operations
-
-**Batch + Discovery (for finding posts to bulk update)**
-
-```json
-{
-  "server": {
-    "toolMode": "discovery,batch"
-  }
-}
-```
-
-**Tools:** 8 tools (5 discovery + 3 batch)
-
-## Security & Safety
-
-### Default Safety
-
-- **Default mode:** `"readonly"` ensures no accidental data modification
-- **Explicit opt-in:** Must explicitly set `"all"` or specific write toolsets to enable modifications
-- **Granular control:** Enable only the toolsets you need
-
-### Runtime Protection
-
-The server enforces toolMode at runtime:
-- Attempts to call unavailable tools return clear errors
-- Logs all blocked operations for audit
-- No way to bypass toolMode restrictions without config change
-
-### Best Practices
-
-1. **Start with readonly:** Use `"readonly"` for exploration and reporting
-2. **Minimize write access:** Only enable write toolsets when needed
-3. **Use specific toolsets:** Prefer `"discovery,engagement"` over `"all"`
-4. **Document your config:** Comment why specific toolsets are enabled
-5. **Review regularly:** Audit which toolsets are enabled and why
-
-## Testing
-
-Verify your toolMode configuration:
-
-```bash
-# Run the toolset selection test
-npx tsx test-toolset-selection.ts
-
-# Expected: 100% pass rate with all 12 tests passing
-```
+All 24 tools.
 
 ## Backward Compatibility
 
-The old `readOnlyMode` setting is still supported:
-
-```json
-// Old way (deprecated but still works)
-{
-  "server": {
-    "readOnlyMode": true  // Maps to toolMode: "readonly"
-  }
-}
-
-// New way (recommended)
-{
-  "server": {
-    "toolMode": "readonly"
-  }
-}
-```
-
-## Examples in Practice
-
-### Example 1: Demo Environment
+The deprecated `readOnlyMode` setting still works:
 
 ```json
 {
   "server": {
-    "toolMode": "readonly"
+    "readOnlyMode": true
   }
 }
 ```
 
-Safe for demonstrations - users can explore data but cannot modify anything.
+This maps to `toolMode: "readonly"`. Use `toolMode` instead.
 
-### Example 2: PM Daily Workflow
+## Security
 
-```json
-{
-  "server": {
-    "toolMode": "discovery,posts,engagement,users"
-  }
-}
-```
-
-Full PM workflow - discover, manage posts, engage with users, no batch operations.
-
-### Example 3: Admin Maintenance
-
-```json
-{
-  "server": {
-    "toolMode": "all"
-  }
-}
-```
-
-Complete access for administrative tasks and data cleanup.
-
-### Example 4: Read-Only Reporting
-
-```json
-{
-  "server": {
-    "toolMode": "discovery,engagement,users"
-  }
-}
-```
-
-All read operations available, no write operations possible.
-
-## Troubleshooting
-
-### Tool not available error
-
-```
-Error: Tool "canny_create_post" is not available.
-Current toolMode: "readonly".
-Tool belongs to toolset: "posts".
-```
-
-**Solution:** Add the required toolset to toolMode:
-```json
-{"toolMode": "readonly,posts"}  // or just "all"
-```
-
-### How to check current configuration
-
-The server logs the toolMode on startup:
-```
-Available tools: 9 (toolMode: readonly)
-```
-
-## Summary
-
-- **6 toolsets** organize 25 tools by functionality
-- **Default is readonly** for maximum safety
-- **Flexible configuration** via comma-separated toolsets
-- **Keyword "all"** enables everything
-- **Base URL is configurable** via environment variable
-
-Use toolsets to enable exactly the capabilities you need, nothing more.
+- Default mode is `readonly` -- no accidental writes
+- You must explicitly enable write toolsets
+- The server blocks calls to unavailable tools at runtime
+- Prefer specific toolsets (`discovery,engagement`) over `all`
