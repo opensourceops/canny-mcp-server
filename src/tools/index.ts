@@ -6,14 +6,15 @@ import { MCPTool } from '../types/mcp.js';
 
 // Discovery tools
 import { listBoards } from './discovery/boards.js';
-import { listTags } from './discovery/tags.js';
+import { listTags, createTag } from './discovery/tags.js';
+import { listStatusChanges } from './discovery/status-changes.js';
 import { listCategories, createCategory } from './discovery/categories.js';
 
 // Post tools
 import { listPosts } from './posts/list.js';
 import { filterPosts } from './posts/search.js';
 import { getPost } from './posts/get.js';
-import { createPost, updatePost, updatePostStatus, changeCategory } from './posts/crud.js';
+import { createPost, updatePost, updatePostStatus, changeCategory, addPostTag, removePostTag } from './posts/crud.js';
 
 // Engagement tools
 import { listComments, createComment, deleteComment } from './engagement/comments.js';
@@ -26,24 +27,31 @@ import { listCompanies, linkCompany } from './users/companies.js';
 // Jira tools
 import { linkJiraIssue, unlinkJiraIssue } from './jira/link.js';
 
+// Changelog tools
+import { createChangelogEntry, listChangelogEntries } from './changelog/entries.js';
+
 // Batch tools
 import { batchUpdateStatus } from './batch/status.js';
 
 export const ALL_TOOLS: MCPTool[] = [
-  // Discovery & List (6 read-only tools)
+  // Discovery & List (8 read-only + 2 write tools)
   listBoards,
   listTags,
+  createTag,
   listCategories,
   listPosts,
   filterPosts,
   getPost,
+  listStatusChanges,
 
-  // Posts Management (5 write tools)
+  // Posts Management (7 write tools)
   createPost,
   updatePost,
   updatePostStatus,
   changeCategory,
   createCategory,
+  addPostTag,
+  removePostTag,
 
   // Engagement (6 tools: 2 read-only, 4 write)
   listComments,
@@ -63,11 +71,15 @@ export const ALL_TOOLS: MCPTool[] = [
   linkJiraIssue,
   unlinkJiraIssue,
 
+  // Changelog (2 tools: 1 read-only, 1 write)
+  createChangelogEntry,
+  listChangelogEntries,
+
   // Batch Operations (1 write tool)
   batchUpdateStatus,
 ];
 
-// Total: 24 tools (10 read-only, 14 write)
+// Total: 30 tools (12 read-only, 18 write)
 
 export function getToolByName(name: string): MCPTool | undefined {
   return ALL_TOOLS.find((tool) => tool.name === name);

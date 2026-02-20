@@ -306,3 +306,99 @@ Examples:
     return { success: true };
   },
 };
+
+export const addPostTag: MCPTool = {
+  name: 'canny_add_post_tag',
+  title: 'Add Tag to Post',
+  description: `Add a tag to a Canny post. Accepts post ID or Canny URL. Idempotent — adding a tag that already exists on the post has no effect.
+
+Args:
+  - postID (string, optional): Post ID to tag
+  - url (string, optional): Canny post URL (alternative to postID)
+  - boardID (string, optional): Board ID (helps resolve URL)
+  - tagID (string, required): Tag ID to add to the post
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Tag post as iOS" -> postID: "abc123", tagID: "tag456"
+  - "Add tag to post from URL" -> url: "https://...", tagID: "tag456"`,
+  readOnly: false,
+  toolset: 'posts',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
+  inputSchema: {
+    postID: z.string().optional().describe('Post ID to tag'),
+    url: z.string().optional().describe('Canny post URL (alternative to postID)'),
+    boardID: z.string().optional().describe('Board ID (optional, helps resolve URL)'),
+    tagID: z.string().describe('Tag ID to add to the post'),
+  },
+  handler: async (params, { client, config, logger }) => {
+    const { postID: providedPostID, url, boardID, tagID } = params;
+
+    const postID = await resolvePostID({ postID: providedPostID, url, boardID, config, client, logger });
+
+    validateRequired(tagID, 'tagID');
+
+    logger.info('Adding tag to post', { postID, tagID });
+
+    await client.addPostTag(postID, tagID);
+
+    logger.info('Tag added to post successfully');
+
+    return { success: true };
+  },
+};
+
+export const removePostTag: MCPTool = {
+  name: 'canny_remove_post_tag',
+  title: 'Remove Tag from Post',
+  description: `Remove a tag from a Canny post. Accepts post ID or Canny URL. Idempotent — removing a tag that doesn't exist on the post has no effect.
+
+Args:
+  - postID (string, optional): Post ID to remove tag from
+  - url (string, optional): Canny post URL (alternative to postID)
+  - boardID (string, optional): Board ID (helps resolve URL)
+  - tagID (string, required): Tag ID to remove from the post
+
+Returns:
+  JSON with success boolean.
+
+Examples:
+  - "Remove iOS tag from post" -> postID: "abc123", tagID: "tag456"
+  - "Untag post from URL" -> url: "https://...", tagID: "tag456"`,
+  readOnly: false,
+  toolset: 'posts',
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: true,
+    idempotentHint: true,
+    openWorldHint: true,
+  },
+  inputSchema: {
+    postID: z.string().optional().describe('Post ID to remove tag from'),
+    url: z.string().optional().describe('Canny post URL (alternative to postID)'),
+    boardID: z.string().optional().describe('Board ID (optional, helps resolve URL)'),
+    tagID: z.string().describe('Tag ID to remove from the post'),
+  },
+  handler: async (params, { client, config, logger }) => {
+    const { postID: providedPostID, url, boardID, tagID } = params;
+
+    const postID = await resolvePostID({ postID: providedPostID, url, boardID, config, client, logger });
+
+    validateRequired(tagID, 'tagID');
+
+    logger.info('Removing tag from post', { postID, tagID });
+
+    await client.removePostTag(postID, tagID);
+
+    logger.info('Tag removed from post successfully');
+
+    return { success: true };
+  },
+};

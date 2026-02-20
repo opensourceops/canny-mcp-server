@@ -41,7 +41,7 @@ export interface CannyPost {
   eta?: string;
   etaPublic: boolean;
   imageURLs: string[];
-  jira?: CannyJiraIssue[];
+  jira?: { linkedIssues: CannyJiraIssue[] };
   owner?: CannyUser;
   score: number;
   status: string;
@@ -110,6 +110,49 @@ export interface InternalPost {
   boardID?: string;
   commentCount?: number;
   [key: string]: unknown;
+}
+
+export interface CannyStatusChange {
+  id: string;
+  changeComment?: { value: string; imageURLs: string[] };
+  changer: CannyUser;
+  created: string;
+  post: CannyPost;
+  status: string;
+}
+
+export interface CannyChangelogEntry {
+  id: string;
+  created: string;
+  labels: { id: string; name: string }[];
+  lastSaved: string;
+  markdownDetails: string;
+  plaintextDetails: string;
+  posts: CannyPost[];
+  publishedAt?: string;
+  reactions: Record<string, number>;
+  scheduledFor?: string;
+  status: string;
+  title: string;
+  types: string[];
+  url: string;
+}
+
+export interface ListStatusChangesParams {
+  boardID?: string;
+  limit?: number;
+  skip?: number;
+}
+
+export interface CreateChangelogEntryParams {
+  title: string;
+  details: string;
+  type?: string;
+  published?: boolean;
+  publishedOn?: string;
+  postIDs?: string[];
+  labelIDs?: string[];
+  notify?: boolean;
 }
 
 // Compact types for token optimization

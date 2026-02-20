@@ -117,7 +117,8 @@ export type ToolsetName =
   | 'engagement'     // Engagement tools
   | 'users'          // Users & Companies tools
   | 'jira'           // Jira Integration tools
-  | 'batch';         // Batch Operations tools
+  | 'batch'          // Batch Operations tools
+  | 'changelog';     // Changelog tools
 
 export type ToolMode =
   | 'all'            // All tools enabled

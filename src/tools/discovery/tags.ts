@@ -4,6 +4,7 @@
 
 import { z } from 'zod';
 import { MCPTool } from '../../types/mcp.js';
+import { validateRequired } from '../../utils/validators.js';
 
 export const listTags: MCPTool = {
   name: 'canny_list_tags',
@@ -53,5 +54,54 @@ Examples:
 
     logger.info(`Fetched ${tags.length} tags`);
     return { tags: compact, hasMore };
+  },
+};
+
+export const createTag: MCPTool = {
+  name: 'canny_create_tag',
+  title: 'Create Tag',
+  description: `Create a new tag on a Canny board.
+
+Args:
+  - boardID (string, required): Board ID to create the tag on
+  - name (string, required): Name for the new tag
+
+Returns:
+  JSON object with the created tag's id and name.
+
+Examples:
+  - "Create an iOS tag" -> { boardID: "abc123", name: "iOS" }
+  - "Add a tag for mobile" -> { boardID: "abc123", name: "mobile" }`,
+  readOnly: false,
+  toolset: 'discovery',
+  inputSchema: {
+    boardID: z.string().describe('Board ID to create tag on'),
+    name: z.string().describe('Tag name'),
+  },
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: true,
+  },
+  handler: async (params, { client, cache, logger }) => {
+    const { boardID, name } = params;
+
+    validateRequired(boardID, 'boardID');
+    validateRequired(name, 'name');
+
+    logger.info('Creating tag', { boardID, name });
+
+    const tag = await client.createTag(boardID, name);
+
+    // Invalidate tag cache for this board
+    cache.delete(`tags:board:${boardID}`);
+
+    logger.info('Tag created successfully', { tagID: tag.id });
+
+    return {
+      id: tag.id,
+      name: tag.name,
+    };
   },
 };

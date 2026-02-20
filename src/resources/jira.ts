@@ -31,11 +31,11 @@ export const jiraLinkStatus: MCPResource = {
     });
 
     const linkedPosts = postsResponse.posts.filter(
-      (post) => post.jira && post.jira.length > 0
+      (post) => post.jira?.linkedIssues && post.jira.linkedIssues.length > 0
     );
 
     const unlinkedHighPriority = postsResponse.posts.filter(
-      (post) => (!post.jira || post.jira.length === 0) && post.score > 10
+      (post) => (!post.jira?.linkedIssues || post.jira.linkedIssues.length === 0) && post.score > 10
     );
 
     const recentlyLinked = linkedPosts
@@ -48,7 +48,7 @@ export const jiraLinkStatus: MCPResource = {
       .map((post) => ({
         postID: post.id,
         postTitle: post.title,
-        issueKeys: post.jira?.map((j) => j.key) || [],
+        issueKeys: post.jira?.linkedIssues?.map((j) => j.key) || [],
         linkedAt: post.statusChangedAt,
       }));
 

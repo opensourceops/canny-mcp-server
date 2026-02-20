@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server for Canny feedback management. Connect Can
 
 ## Features
 
-- **24 Tools** — Full Canny API coverage: posts, comments, votes, users, categories, and Jira integration
+- **30 Tools** — Full Canny API coverage: posts, comments, votes, users, categories, tags, changelog, status changes, and Jira integration
 - **Token-Optimized** — 70–90% smaller responses than the raw API
 - **Jira Integration** — Link posts to Jira issues
 - **PM Workflows** — Built-in prompts for weekly triage, sprint planning, and executive reporting
@@ -57,7 +57,7 @@ Ask Claude:
 List the available Canny tools.
 ```
 
-You should see 24 tools, including `canny_list_posts`, `canny_get_post`, and `canny_filter_posts`.
+You should see 30 tools, including `canny_list_posts`, `canny_get_post`, and `canny_filter_posts`.
 
 ## Global Install
 
@@ -87,20 +87,24 @@ Then configure your MCP client to run `canny-mcp-server` instead of `npx`:
 
 ## Available Tools
 
-### Discovery (7 tools: 6 read-only, 1 write)
+### Discovery (9 tools: 8 read-only, 1 write)
 - `canny_list_boards` — List all boards
 - `canny_list_tags` — List tags (optionally by board)
+- `canny_create_tag` — Create a new tag on a board
 - `canny_list_categories` — List categories
 - `canny_list_posts` — List posts with filters (status, author, company, tags)
 - `canny_filter_posts` — Filter by category, company, segment, tag slugs, and date ranges
 - `canny_get_post` — Get full post details with comments and votes
+- `canny_list_status_changes` — List post status change history for auditing
 - `canny_create_category` — Create a board category
 
-### Posts (4 write tools)
+### Posts (6 write tools)
 - `canny_create_post` — Create a post (supports images, ETA, owner)
 - `canny_update_post` — Update title, description, ETA, or images
 - `canny_update_post_status` — Change status with optional voter notification
 - `canny_change_category` — Move a post to a different category
+- `canny_add_post_tag` — Add a tag to a post
+- `canny_remove_post_tag` — Remove a tag from a post
 
 ### Engagement (6 tools: 2 read-only, 4 write)
 - `canny_list_comments` — List comments (filterable by company)
@@ -120,6 +124,10 @@ Then configure your MCP client to run `canny-mcp-server` instead of `npx`:
 - `canny_link_jira_issue` — Link a Jira issue to a post
 - `canny_unlink_jira_issue` — Unlink a Jira issue
 
+### Changelog (2 tools: 1 read-only, 1 write)
+- `canny_list_changelog_entries` — List changelog entries
+- `canny_create_changelog_entry` — Create a changelog entry to communicate product updates
+
 ### Batch (1 write tool)
 - `canny_batch_update_status` — Update multiple post statuses at once
 
@@ -127,12 +135,12 @@ Then configure your MCP client to run `canny-mcp-server` instead of `npx`:
 
 ### Tool Modes
 
-The server runs in **readonly** mode by default (10 read-only tools). To enable write operations, set `CANNY_TOOL_MODE`:
+The server runs in **readonly** mode by default (12 read-only tools). To enable write operations, set `CANNY_TOOL_MODE`:
 
 | Mode | Tools | Description |
 |------|-------|-------------|
-| `readonly` | 10 | Read-only tools only (default) |
-| `all` | 24 | All tools, including writes |
+| `readonly` | 12 | Read-only tools only (default) |
+| `all` | 30 | All tools, including writes |
 | `discovery,posts` | varies | Specific toolsets (comma-separated) |
 
 Set via environment variable or `config/default.json`:
