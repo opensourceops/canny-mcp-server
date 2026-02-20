@@ -118,7 +118,8 @@ export type ToolsetName =
   | 'users'          // Users & Companies tools
   | 'jira'           // Jira Integration tools
   | 'batch'          // Batch Operations tools
-  | 'changelog';     // Changelog tools
+  | 'changelog'      // Changelog tools
+  | 'ideas';         // Ideas ecosystem: Groups, Ideas, Insights, Opportunities
 
 export type ToolMode =
   | 'all'            // All tools enabled

@@ -30,6 +30,12 @@ import { linkJiraIssue, unlinkJiraIssue } from './jira/link.js';
 // Changelog tools
 import { createChangelogEntry, listChangelogEntries } from './changelog/entries.js';
 
+// Ideas ecosystem tools
+import { listGroups, getGroup } from './ideas/groups.js';
+import { listIdeas, getIdea } from './ideas/ideas.js';
+import { listInsights, getInsight } from './ideas/insights.js';
+import { listOpportunities } from './ideas/opportunities.js';
+
 // Batch tools
 import { batchUpdateStatus } from './batch/status.js';
 
@@ -75,11 +81,20 @@ export const ALL_TOOLS: MCPTool[] = [
   createChangelogEntry,
   listChangelogEntries,
 
+  // Ideas ecosystem (7 tools: all read-only)
+  listGroups,
+  getGroup,
+  listIdeas,
+  getIdea,
+  listInsights,
+  getInsight,
+  listOpportunities,
+
   // Batch Operations (1 write tool)
   batchUpdateStatus,
 ];
 
-// Total: 30 tools (12 read-only, 18 write)
+// Total: 37 tools (19 read-only, 18 write)
 
 export function getToolByName(name: string): MCPTool | undefined {
   return ALL_TOOLS.find((tool) => tool.name === name);

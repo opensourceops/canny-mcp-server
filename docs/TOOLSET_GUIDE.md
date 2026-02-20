@@ -2,20 +2,21 @@
 
 ## Overview
 
-The Canny MCP Server organizes its 30 tools into 7 toolsets. You enable toolsets through the `CANNY_TOOL_MODE` environment variable or `config/default.json`.
+The Canny MCP Server organizes its 37 tools into 8 toolsets. You enable toolsets through the `CANNY_TOOL_MODE` environment variable or `config/default.json`.
 
 ## Tool Modes
 
 | Mode | Tools Enabled | Description |
 |------|---------------|-------------|
-| `readonly` | 12 | Read-only tools only (default) |
-| `all` | 30 | All tools |
+| `readonly` | 19 | Read-only tools only (default) |
+| `all` | 37 | All tools |
 | `discovery` | 9 | Discovery & list operations |
 | `posts` | 6 | Post write operations |
 | `engagement` | 6 | Comments & votes |
 | `users` | 4 | Users & companies |
 | `jira` | 2 | Jira integration |
 | `changelog` | 2 | Changelog entries |
+| `ideas` | 7 | Ideas, groups, insights, opportunities |
 | `batch` | 1 | Batch operations |
 | Comma-separated | Mixed | Custom combination (e.g., `discovery,posts`) |
 
@@ -101,7 +102,19 @@ CANNY_TOOL_MODE=discovery,posts    # Discovery + Posts
 | `canny_list_changelog_entries` | Yes | List changelog entries |
 | `canny_create_changelog_entry` | No | Create a changelog entry |
 
-### 7. Batch (1 tool: write)
+### 7. Ideas Ecosystem (7 tools: all read-only)
+
+| Tool | Read-Only | Description |
+|------|-----------|-------------|
+| `canny_list_groups` | Yes | List groups (cursor-based pagination) |
+| `canny_get_group` | Yes | Get group by ID or URL name |
+| `canny_list_ideas` | Yes | List ideas with filters, search, sorting |
+| `canny_get_idea` | Yes | Get idea by ID or URL name |
+| `canny_list_insights` | Yes | List insights, filterable by idea |
+| `canny_get_insight` | Yes | Get insight by ID |
+| `canny_list_opportunities` | Yes | List Salesforce opportunities |
+
+### 8. Batch (1 tool: write)
 
 | Tool | Description |
 |------|-------------|
@@ -109,12 +122,13 @@ CANNY_TOOL_MODE=discovery,posts    # Discovery + Posts
 
 ## Read-Only Mode
 
-The default `readonly` mode enables 12 tools:
+The default `readonly` mode enables 19 tools:
 
 - All 8 read-only tools from **discovery** (`list_boards`, `list_tags`, `list_categories`, `list_posts`, `filter_posts`, `get_post`, `list_status_changes`)
 - 2 read-only tools from **engagement** (`list_comments`, `list_votes`)
 - 2 read-only tools from **users** (`get_user_details`, `list_companies`)
 - 1 read-only tool from **changelog** (`list_changelog_entries`)
+- All 7 read-only tools from **ideas** (`list_groups`, `get_group`, `list_ideas`, `get_idea`, `list_insights`, `get_insight`, `list_opportunities`)
 
 No data modification is possible in this mode.
 
@@ -126,15 +140,15 @@ No data modification is possible in this mode.
 { "server": { "toolMode": "readonly" } }
 ```
 
-12 tools. Safe for demonstrations and reporting.
+19 tools. Safe for demonstrations and reporting.
 
 ### Product manager workflow
 
 ```json
-{ "server": { "toolMode": "discovery,posts,engagement,changelog" } }
+{ "server": { "toolMode": "discovery,posts,engagement,changelog,ideas" } }
 ```
 
-23 tools. Discover, manage posts, engage with users, and publish changelog entries.
+30 tools. Discover, manage posts, engage with users, publish changelog entries, and explore ideas.
 
 ### Integration focus
 
@@ -150,7 +164,7 @@ No data modification is possible in this mode.
 { "server": { "toolMode": "all" } }
 ```
 
-All 30 tools.
+All 37 tools.
 
 ## Backward Compatibility
 
