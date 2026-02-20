@@ -2,19 +2,20 @@
 
 ## Overview
 
-The Canny MCP Server organizes its 24 tools into 6 toolsets. You enable toolsets through the `CANNY_TOOL_MODE` environment variable or `config/default.json`.
+The Canny MCP Server organizes its 30 tools into 7 toolsets. You enable toolsets through the `CANNY_TOOL_MODE` environment variable or `config/default.json`.
 
 ## Tool Modes
 
 | Mode | Tools Enabled | Description |
 |------|---------------|-------------|
-| `readonly` | 10 | Read-only tools only (default) |
-| `all` | 24 | All tools |
-| `discovery` | 7 | Discovery & list operations |
-| `posts` | 4 | Post write operations |
+| `readonly` | 12 | Read-only tools only (default) |
+| `all` | 30 | All tools |
+| `discovery` | 9 | Discovery & list operations |
+| `posts` | 6 | Post write operations |
 | `engagement` | 6 | Comments & votes |
 | `users` | 4 | Users & companies |
 | `jira` | 2 | Jira integration |
+| `changelog` | 2 | Changelog entries |
 | `batch` | 1 | Batch operations |
 | Comma-separated | Mixed | Custom combination (e.g., `discovery,posts`) |
 
@@ -41,19 +42,21 @@ CANNY_TOOL_MODE=discovery,posts    # Discovery + Posts
 
 ## Toolset Breakdown
 
-### 1. Discovery (7 tools: 6 read-only, 1 write)
+### 1. Discovery (9 tools: 8 read-only, 1 write)
 
 | Tool | Read-Only | Description |
 |------|-----------|-------------|
 | `canny_list_boards` | Yes | List all boards |
 | `canny_list_tags` | Yes | List tags (optionally by board) |
+| `canny_create_tag` | No | Create a new tag on a board |
 | `canny_list_categories` | Yes | List categories |
 | `canny_list_posts` | Yes | List posts with filters |
 | `canny_filter_posts` | Yes | Filter by category, company, segment, tag, date range |
 | `canny_get_post` | Yes | Get full post details |
+| `canny_list_status_changes` | Yes | List post status change history |
 | `canny_create_category` | No | Create a board category |
 
-### 2. Posts (4 tools: all write)
+### 2. Posts (6 tools: all write)
 
 | Tool | Description |
 |------|-------------|
@@ -61,6 +64,8 @@ CANNY_TOOL_MODE=discovery,posts    # Discovery + Posts
 | `canny_update_post` | Update title, description, ETA, images |
 | `canny_update_post_status` | Change status with optional notification |
 | `canny_change_category` | Move a post to a different category |
+| `canny_add_post_tag` | Add a tag to a post |
+| `canny_remove_post_tag` | Remove a tag from a post |
 
 ### 3. Engagement (6 tools: 2 read-only, 4 write)
 
@@ -89,7 +94,14 @@ CANNY_TOOL_MODE=discovery,posts    # Discovery + Posts
 | `canny_link_jira_issue` | Link a Jira issue to a post |
 | `canny_unlink_jira_issue` | Unlink a Jira issue |
 
-### 6. Batch (1 tool: write)
+### 6. Changelog (2 tools: 1 read-only, 1 write)
+
+| Tool | Read-Only | Description |
+|------|-----------|-------------|
+| `canny_list_changelog_entries` | Yes | List changelog entries |
+| `canny_create_changelog_entry` | No | Create a changelog entry |
+
+### 7. Batch (1 tool: write)
 
 | Tool | Description |
 |------|-------------|
@@ -97,11 +109,12 @@ CANNY_TOOL_MODE=discovery,posts    # Discovery + Posts
 
 ## Read-Only Mode
 
-The default `readonly` mode enables 10 tools:
+The default `readonly` mode enables 12 tools:
 
-- All 6 read-only tools from **discovery**
+- All 8 read-only tools from **discovery** (`list_boards`, `list_tags`, `list_categories`, `list_posts`, `filter_posts`, `get_post`, `list_status_changes`)
 - 2 read-only tools from **engagement** (`list_comments`, `list_votes`)
 - 2 read-only tools from **users** (`get_user_details`, `list_companies`)
+- 1 read-only tool from **changelog** (`list_changelog_entries`)
 
 No data modification is possible in this mode.
 
@@ -113,15 +126,15 @@ No data modification is possible in this mode.
 { "server": { "toolMode": "readonly" } }
 ```
 
-10 tools. Safe for demonstrations and reporting.
+12 tools. Safe for demonstrations and reporting.
 
 ### Product manager workflow
 
 ```json
-{ "server": { "toolMode": "discovery,posts,engagement" } }
+{ "server": { "toolMode": "discovery,posts,engagement,changelog" } }
 ```
 
-17 tools. Discover, manage posts, and engage with users.
+23 tools. Discover, manage posts, engage with users, and publish changelog entries.
 
 ### Integration focus
 
@@ -137,7 +150,7 @@ No data modification is possible in this mode.
 { "server": { "toolMode": "all" } }
 ```
 
-All 24 tools.
+All 30 tools.
 
 ## Backward Compatibility
 

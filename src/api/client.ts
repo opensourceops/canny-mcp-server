@@ -23,6 +23,10 @@ import {
   CreateCommentParams,
   CreateVoteParams,
   FindOrCreateUserParams,
+  CannyStatusChange,
+  CannyChangelogEntry,
+  ListStatusChangesParams,
+  CreateChangelogEntryParams,
 } from '../types/canny.js';
 
 export class CannyClient {
@@ -396,5 +400,64 @@ export class CannyClient {
       postID,
       issueKey,
     });
+  }
+
+  // ===== Tag Write Operations =====
+
+  async createTag(boardID: string, name: string): Promise<CannyTag> {
+    return this.request<CannyTag>('tags/create', { boardID, name });
+  }
+
+  // ===== Post Tag Operations =====
+
+  async addPostTag(postID: string, tagID: string): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>('posts/add_tag', { postID, tagID });
+  }
+
+  async removePostTag(postID: string, tagID: string): Promise<{ success: boolean }> {
+    return this.request<{ success: boolean }>('posts/remove_tag', { postID, tagID });
+  }
+
+  // ===== Status Change Operations =====
+
+  async listStatusChanges(params: ListStatusChangesParams): Promise<{
+    statusChanges: CannyStatusChange[];
+    hasMore: boolean;
+  }> {
+    const response = await this.request<{
+      statusChanges: CannyStatusChange[];
+      hasMore: boolean;
+    }>('status_changes/list', params);
+
+    return {
+      statusChanges: response.statusChanges || [],
+      hasMore: response.hasMore || false,
+    };
+  }
+
+  // ===== Changelog Operations =====
+
+  async createChangelogEntry(params: CreateChangelogEntryParams): Promise<CannyChangelogEntry> {
+    return this.request<CannyChangelogEntry>('changelog_entries/create', params);
+  }
+
+  async listChangelogEntries(params: {
+    labelIDs?: string[];
+    type?: string;
+    limit?: number;
+    skip?: number;
+  }): Promise<{
+    entries: CannyChangelogEntry[];
+    hasMore: boolean;
+  }> {
+    const response = await this.request<{
+      entries: CannyChangelogEntry[];
+      hasMore: boolean;
+    }>('changelog_entries/list', params);
+
+    return {
+      entries: response.entries || [],
+      hasMore: response.hasMore || false,
+    };
   }
 }

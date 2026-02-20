@@ -46,8 +46,8 @@ export class ResponseTransformer {
       compact.commentCount = post.commentCount;
     }
 
-    if (selectedFields.includes('jira') && post.jira) {
-      compact.jiraIssues = post.jira.map((j) => j.key);
+    if (selectedFields.includes('jira') && post.jira?.linkedIssues) {
+      compact.jiraIssues = post.jira.linkedIssues.map((j) => j.key);
     }
 
     if (selectedFields.includes('tags') && post.tags) {

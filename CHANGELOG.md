@@ -107,7 +107,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - All new parameters tested
 - Backward compatibility verified
 
-## [Unreleased]
+## [1.2.1] - 2026-02-20
+
+### Added
+- **New Tools** (6):
+  - `canny_create_tag` — Create a new tag on a Canny board
+  - `canny_add_post_tag` — Add a tag to a post (idempotent)
+  - `canny_remove_post_tag` — Remove a tag from a post (idempotent)
+  - `canny_list_status_changes` — List post status change history for auditing
+  - `canny_create_changelog_entry` — Create a changelog entry to communicate product updates
+  - `canny_list_changelog_entries` — List changelog entries with optional filtering by type or label
+- **New toolset**: `changelog` — groups changelog tools for selective enablement
+- **New types**: `CannyStatusChange`, `CannyChangelogEntry` with associated param interfaces
+- **New client methods**: `createTag`, `addPostTag`, `removePostTag`, `listStatusChanges`, `createChangelogEntry`, `listChangelogEntries`
+
+### Changed
+- **Total tool count**: 24 → 30 tools (12 read-only, 18 write)
+- **Discovery toolset**: 7 → 9 tools (added `canny_create_tag`, `canny_list_status_changes`)
+- **Posts toolset**: 4 → 6 tools (added `canny_add_post_tag`, `canny_remove_post_tag`)
+- **Toolset count**: 6 → 7 (added `changelog`)
+- **Read-only mode**: 10 → 12 tools (added `canny_list_status_changes`, `canny_list_changelog_entries`)
+- Updated all documentation to reflect new tool counts and toolset descriptions
+
+### Fixed
+- **`canny_get_post` crash with `fields: ["jira"]`** — The Canny API returns `post.jira` as `{ linkedIssues: [...] }` (an object), but the code treated it as a direct array, causing `post.jira.map is not a function`. Fixed the `CannyPost` type and all references in `ResponseTransformer` and `jiraLinkStatus` resource.
 
 ### Planned
 - GitHub integration support

@@ -28,7 +28,7 @@ Restart Claude Code. Ask:
 List the available Canny tools.
 ```
 
-You should see 24 tools.
+You should see 30 tools.
 
 ## Option B: Install globally
 
