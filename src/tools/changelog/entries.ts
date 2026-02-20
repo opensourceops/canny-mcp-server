@@ -20,6 +20,7 @@ Args:
   - postIDs (string[], optional): Array of Canny post IDs to link to this entry
   - labelIDs (string[], optional): Array of label IDs to assign
   - notify (boolean, optional): Whether to notify subscribers (default: false)
+  - scheduledFor (string, optional): ISO 8601 date to schedule publication for a future date
 
 Returns:
   JSON object with the created entry's id, title, url, and status.
@@ -27,7 +28,7 @@ Returns:
 Examples:
   - "Create a changelog entry" -> { title: "Dark Mode", details: "We added dark mode..." }
   - "Publish a bug fix entry" -> { title: "Bug Fix", details: "Fixed...", type: "fixed", published: true }
-  - "Create entry linked to posts" -> { title: "New Feature", details: "...", postIDs: ["abc123"] }`,
+  - "Schedule entry for next week" -> { title: "Coming Soon", details: "...", scheduledFor: "2026-03-01T00:00:00Z" }`,
   readOnly: false,
   toolset: 'changelog',
   inputSchema: {
@@ -36,6 +37,7 @@ Examples:
     type: z.string().optional().describe('Entry type: "new", "improved", or "fixed"'),
     published: z.boolean().optional().describe('Whether to publish immediately (default: false)'),
     publishedOn: z.string().optional().describe('Publication date in ISO 8601 format'),
+    scheduledFor: z.string().optional().describe('ISO 8601 date to schedule publication for a future date'),
     postIDs: z.array(z.string()).optional().describe('Array of Canny post IDs to link'),
     labelIDs: z.array(z.string()).optional().describe('Array of label IDs to assign'),
     notify: z.boolean().optional().describe('Whether to notify subscribers (default: false)'),
@@ -47,7 +49,7 @@ Examples:
     openWorldHint: true,
   },
   handler: async (params, { client, logger }) => {
-    const { title, details, type, published, publishedOn, postIDs, labelIDs, notify } = params;
+    const { title, details, type, published, publishedOn, scheduledFor, postIDs, labelIDs, notify } = params;
 
     validateRequired(title, 'title');
     validateRequired(details, 'details');
@@ -60,6 +62,7 @@ Examples:
       ...(type && { type }),
       ...(published !== undefined && { published }),
       ...(publishedOn && { publishedOn }),
+      ...(scheduledFor && { scheduledFor }),
       ...(postIDs && { postIDs }),
       ...(labelIDs && { labelIDs }),
       ...(notify !== undefined && { notify }),
@@ -84,6 +87,7 @@ export const listChangelogEntries: MCPTool = {
 Args:
   - labelIDs (string[], optional): Filter entries by label IDs
   - type (string, optional): Filter by entry type - "new", "improved", or "fixed"
+  - sort (string, optional): Sort order - "created", "lastSaved", "nonPublishedFirst", or "publishedAt" (default: "nonPublishedFirst")
   - limit (number, optional): Max entries to return (default 10)
   - skip (number, optional): Number of entries to skip for pagination (default 0)
 
@@ -99,6 +103,7 @@ Examples:
   inputSchema: {
     labelIDs: z.array(z.string()).optional().describe('Filter entries by label IDs'),
     type: z.string().optional().describe('Filter by entry type: "new", "improved", or "fixed"'),
+    sort: z.string().optional().describe('Sort order: "created", "lastSaved", "nonPublishedFirst", or "publishedAt"'),
     limit: z.number().optional().describe('Max entries to return (default 10)'),
     skip: z.number().optional().describe('Number of entries to skip for pagination (default 0)'),
   },
@@ -109,13 +114,14 @@ Examples:
     openWorldHint: true,
   },
   handler: async (params, { client, logger }) => {
-    const { labelIDs, type, limit = 10, skip = 0 } = params;
+    const { labelIDs, type, sort, limit = 10, skip = 0 } = params;
 
-    logger.info('Fetching changelog entries', { labelIDs, type, limit, skip });
+    logger.info('Fetching changelog entries', { labelIDs, type, sort, limit, skip });
 
     const { entries, hasMore } = await client.listChangelogEntries({
       ...(labelIDs && { labelIDs }),
       ...(type && { type }),
+      ...(sort && { sort }),
       limit,
       skip,
     });

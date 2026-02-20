@@ -150,9 +150,74 @@ export interface CreateChangelogEntryParams {
   type?: string;
   published?: boolean;
   publishedOn?: string;
+  scheduledFor?: string;
   postIDs?: string[];
   labelIDs?: string[];
   notify?: boolean;
+}
+
+// Groups
+export interface CannyGroup {
+  id: string;
+  name: string;
+  description: string;
+  urlName: string;
+}
+
+// Ideas
+export interface CannyIdeaStatus {
+  id: string;
+  name: string;
+  type: string;
+  urlName: string;
+}
+
+export interface CannyIdea {
+  id: string;
+  childCount: number;
+  author?: CannyUser;
+  created: string;
+  description: string;
+  group?: CannyGroup;
+  owner?: CannyUser;
+  parent?: { id: string; title: string; urlName: string };
+  source: { name: string; type: string };
+  status: CannyIdeaStatus;
+  title: string;
+  updatedAt: string;
+  urlName: string;
+}
+
+export interface IdeaFilter {
+  resource: string;
+  condition: string;
+  value: { fieldID: string; value: unknown };
+}
+
+// Insights
+export interface CannyInsight {
+  id: string;
+  author?: CannyUser;
+  company?: { id: string; name: string; monthlySpend: number; urlName: string };
+  created: string;
+  ideaID: string;
+  priority?: string;
+  source: { name: string; type: string };
+  url?: string;
+  users: CannyUser[];
+  value: string;
+}
+
+// Opportunities
+export interface CannyOpportunity {
+  id: string;
+  closed: boolean;
+  ideaIDs: string[];
+  name: string;
+  postIDs: string[];
+  salesforceOpportunityID: string;
+  value: number;
+  won: boolean;
 }
 
 // Compact types for token optimization

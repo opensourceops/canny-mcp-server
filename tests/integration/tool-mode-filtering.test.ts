@@ -28,6 +28,9 @@ function filterTools(toolMode: string | boolean | undefined) {
 
 const EXPECTED_READONLY_TOOLS = [
   'canny_filter_posts',
+  'canny_get_group',
+  'canny_get_idea',
+  'canny_get_insight',
   'canny_get_post',
   'canny_get_user_details',
   'canny_list_boards',
@@ -35,6 +38,10 @@ const EXPECTED_READONLY_TOOLS = [
   'canny_list_changelog_entries',
   'canny_list_comments',
   'canny_list_companies',
+  'canny_list_groups',
+  'canny_list_ideas',
+  'canny_list_insights',
+  'canny_list_opportunities',
   'canny_list_posts',
   'canny_list_status_changes',
   'canny_list_tags',
@@ -70,16 +77,17 @@ const VALID_TOOLSETS: ToolsetName[] = [
   'jira',
   'batch',
   'changelog',
+  'ideas',
 ];
 
 describe('Tool Registry Integrity', () => {
-  test('has 30 total tools', () => {
-    expect(ALL_TOOLS).toHaveLength(30);
+  test('has 37 total tools', () => {
+    expect(ALL_TOOLS).toHaveLength(37);
   });
 
-  test('has 12 readonly tools', () => {
+  test('has 19 readonly tools', () => {
     const readonlyTools = ALL_TOOLS.filter((t) => t.readOnly);
-    expect(readonlyTools).toHaveLength(12);
+    expect(readonlyTools).toHaveLength(19);
   });
 
   test('has 18 write tools', () => {
@@ -145,31 +153,31 @@ describe('Annotation Consistency', () => {
 });
 
 describe('Tool Mode Filtering', () => {
-  test('"readonly" returns 12 readonly tools', () => {
+  test('"readonly" returns 19 readonly tools', () => {
     const tools = filterTools('readonly');
-    expect(tools).toHaveLength(12);
+    expect(tools).toHaveLength(19);
     expect(tools.every((t) => t.readOnly)).toBe(true);
   });
 
-  test('true returns 12 readonly tools (backward compat)', () => {
+  test('true returns 19 readonly tools (backward compat)', () => {
     const tools = filterTools(true);
-    expect(tools).toHaveLength(12);
+    expect(tools).toHaveLength(19);
     expect(tools.every((t) => t.readOnly)).toBe(true);
   });
 
-  test('"all" returns all 30 tools', () => {
+  test('"all" returns all 37 tools', () => {
     const tools = filterTools('all');
-    expect(tools).toHaveLength(30);
+    expect(tools).toHaveLength(37);
   });
 
-  test('false returns all 30 tools (backward compat)', () => {
+  test('false returns all 37 tools (backward compat)', () => {
     const tools = filterTools(false);
-    expect(tools).toHaveLength(30);
+    expect(tools).toHaveLength(37);
   });
 
-  test('undefined defaults to 12 readonly tools', () => {
+  test('undefined defaults to 19 readonly tools', () => {
     const tools = filterTools(undefined);
-    expect(tools).toHaveLength(12);
+    expect(tools).toHaveLength(19);
     expect(tools.every((t) => t.readOnly)).toBe(true);
   });
 
@@ -201,6 +209,12 @@ describe('Tool Mode Filtering', () => {
     const tools = filterTools('changelog');
     expect(tools).toHaveLength(2);
     expect(tools.every((t) => t.toolset === 'changelog')).toBe(true);
+  });
+
+  test('"ideas" returns 7 tools', () => {
+    const tools = filterTools('ideas');
+    expect(tools).toHaveLength(7);
+    expect(tools.every((t) => t.toolset === 'ideas')).toBe(true);
   });
 
   test('"jira" returns 2 tools', () => {

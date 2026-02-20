@@ -27,6 +27,11 @@ import {
   CannyChangelogEntry,
   ListStatusChangesParams,
   CreateChangelogEntryParams,
+  CannyGroup,
+  CannyIdea,
+  IdeaFilter,
+  CannyInsight,
+  CannyOpportunity,
 } from '../types/canny.js';
 
 export class CannyClient {
@@ -444,6 +449,7 @@ export class CannyClient {
   async listChangelogEntries(params: {
     labelIDs?: string[];
     type?: string;
+    sort?: string;
     limit?: number;
     skip?: number;
   }): Promise<{
@@ -457,6 +463,97 @@ export class CannyClient {
 
     return {
       entries: response.entries || [],
+      hasMore: response.hasMore || false,
+    };
+  }
+
+  // ===== Group Operations =====
+
+  async listGroups(params: {
+    cursor?: string;
+    limit?: number;
+  }): Promise<{ items: CannyGroup[]; hasNextPage: boolean; cursor?: string }> {
+    const response = await this.request<{
+      items: CannyGroup[];
+      hasNextPage: boolean;
+      cursor?: string;
+    }>('groups/list', params);
+
+    return {
+      items: response.items || [],
+      hasNextPage: response.hasNextPage || false,
+      cursor: response.cursor,
+    };
+  }
+
+  async retrieveGroup(params: { id?: string; urlName?: string }): Promise<CannyGroup> {
+    return this.request<CannyGroup>('groups/retrieve', params);
+  }
+
+  // ===== Idea Operations =====
+
+  async listIdeas(params: {
+    cursor?: string;
+    filtering?: { filters: IdeaFilter[]; filtersOperator?: string };
+    limit?: number;
+    parentID?: string;
+    search?: string;
+    sort?: { field: string; direction: string };
+  }): Promise<{ items: CannyIdea[]; hasNextPage: boolean; cursor?: string }> {
+    const response = await this.request<{
+      items: CannyIdea[];
+      hasNextPage: boolean;
+      cursor?: string;
+    }>('ideas/list', params);
+
+    return {
+      items: response.items || [],
+      hasNextPage: response.hasNextPage || false,
+      cursor: response.cursor,
+    };
+  }
+
+  async retrieveIdea(params: { id?: string; urlName?: string }): Promise<CannyIdea> {
+    return this.request<CannyIdea>('ideas/retrieve', params);
+  }
+
+  // ===== Insight Operations =====
+
+  async listInsights(params: {
+    cursor?: string;
+    ideaID?: string;
+    limit?: number;
+  }): Promise<{ items: CannyInsight[]; hasNextPage: boolean; cursor?: string }> {
+    const response = await this.request<{
+      items: CannyInsight[];
+      hasNextPage: boolean;
+      cursor?: string;
+    }>('insights/list', params);
+
+    return {
+      items: response.items || [],
+      hasNextPage: response.hasNextPage || false,
+      cursor: response.cursor,
+    };
+  }
+
+  async retrieveInsight(id: string): Promise<CannyInsight> {
+    return this.request<CannyInsight>('insights/retrieve', { id });
+  }
+
+  // ===== Opportunity Operations =====
+
+  async listOpportunities(params: {
+    limit?: number;
+    skip?: number;
+  }): Promise<{ opportunities: CannyOpportunity[]; hasMore: boolean }> {
+    const response = await this.request<{
+      opportunities: CannyOpportunity[];
+      hasMore: boolean;
+    }>('opportunities/list', params);
+
+    return {
+      opportunities: response.opportunities || [],
       hasMore: response.hasMore || false,
     };
   }

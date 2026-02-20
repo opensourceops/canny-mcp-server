@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server for Canny feedback management. Connect Can
 
 ## Features
 
-- **30 Tools** — Full Canny API coverage: posts, comments, votes, users, categories, tags, changelog, status changes, and Jira integration
+- **37 Tools** — Full Canny API coverage: posts, comments, votes, users, categories, tags, changelog, status changes, ideas, insights, groups, opportunities, and Jira integration
 - **Token-Optimized** — 70–90% smaller responses than the raw API
 - **Jira Integration** — Link posts to Jira issues
 - **PM Workflows** — Built-in prompts for weekly triage, sprint planning, and executive reporting
@@ -57,7 +57,7 @@ Ask Claude:
 List the available Canny tools.
 ```
 
-You should see 30 tools, including `canny_list_posts`, `canny_get_post`, and `canny_filter_posts`.
+You should see 37 tools, including `canny_list_posts`, `canny_get_post`, and `canny_list_ideas`.
 
 ## Global Install
 
@@ -128,6 +128,15 @@ Then configure your MCP client to run `canny-mcp-server` instead of `npx`:
 - `canny_list_changelog_entries` — List changelog entries
 - `canny_create_changelog_entry` — Create a changelog entry to communicate product updates
 
+### Ideas Ecosystem (7 read-only tools)
+- `canny_list_groups` — List groups (cursor-based pagination)
+- `canny_get_group` — Get a group by ID or URL name
+- `canny_list_ideas` — List ideas with filtering, search, and sorting
+- `canny_get_idea` — Get an idea by ID or URL name
+- `canny_list_insights` — List insights, optionally filtered by idea
+- `canny_get_insight` — Get an insight by ID
+- `canny_list_opportunities` — List Salesforce opportunities linked to Canny
+
 ### Batch (1 write tool)
 - `canny_batch_update_status` — Update multiple post statuses at once
 
@@ -135,12 +144,12 @@ Then configure your MCP client to run `canny-mcp-server` instead of `npx`:
 
 ### Tool Modes
 
-The server runs in **readonly** mode by default (12 read-only tools). To enable write operations, set `CANNY_TOOL_MODE`:
+The server runs in **readonly** mode by default (19 read-only tools). To enable write operations, set `CANNY_TOOL_MODE`:
 
 | Mode | Tools | Description |
 |------|-------|-------------|
-| `readonly` | 12 | Read-only tools only (default) |
-| `all` | 30 | All tools, including writes |
+| `readonly` | 19 | Read-only tools only (default) |
+| `all` | 37 | All tools, including writes |
 | `discovery,posts` | varies | Specific toolsets (comma-separated) |
 
 Set via environment variable or `config/default.json`:
